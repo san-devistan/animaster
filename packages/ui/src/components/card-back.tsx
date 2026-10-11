@@ -17,9 +17,8 @@ function CardBack({ className }: { className?: string }) {
       <div className="game-card-back-body">
         <div className="game-card-back-face">
           <GameFx name="back" tilt={tilt} />
-          <i className="game-disc" />
           <b className="mt-3 text-3xl font-black tracking-tight font-heading">
-            MUSI
+            ANI
           </b>
           <span className="mt-2 text-xs font-semibold tracking-widest opacity-70">
             MASTER

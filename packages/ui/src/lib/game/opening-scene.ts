@@ -44,7 +44,7 @@ import {
   type Celebrated,
   type Pose,
 } from "@workspace/ui/lib/game/reveal-motion"
-import type { GameSong } from "@workspace/ui/lib/game/theme"
+import type { GameCardData } from "@workspace/ui/lib/game/theme"
 import * as THREE from "three"
 
 // Phone-sized design, in CSS px; world y points up from the middle. Any other
@@ -223,8 +223,8 @@ export type OpeningScene = {
 
 export function mountOpeningScene(
   canvas: HTMLCanvasElement,
-  songs: ReadonlyArray<GameSong & { isNew?: boolean }>,
-  covers: ReadonlyArray<string>,
+  pulls: ReadonlyArray<GameCardData & { isNew?: boolean }>,
+  images: ReadonlyArray<string>,
   onOpened: () => void,
   // Without it, the waiting pack is simply there.
   { entrance = true } = {}
@@ -234,7 +234,7 @@ export function mountOpeningScene(
   // they read as coming out of the pack rather than in front of it.
   const mouth = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
   stage.renderer.localClippingEnabled = true
-  const art = drawPackArt(covers)
+  const art = drawPackArt(images)
   const packPart = (part: "body" | "strip", band?: number, floorY?: number) =>
     addFilm(
       stage,
@@ -272,9 +272,9 @@ export function mountOpeningScene(
     rest: { z: number; rz: number }
     chosen: number | null
   } | null> = []
-  const cards: Array<Film> = songs.map((song) => {
-    const card = addFilm(stage, cardFilm(song), { clip: [mouth] })
-    if (song.isNew) {
+  const cards: Array<Film> = pulls.map((pull) => {
+    const card = addFilm(stage, cardFilm(pull), { clip: [mouth] })
+    if (pull.isNew) {
       const sticker = newSticker(
         stage.renderer,
         undefined,
@@ -299,8 +299,8 @@ export function mountOpeningScene(
   }
   const shine = cardShine()
   stage.disposables.push(backs, shine)
-  const poses = songs.map(() => pose({}))
-  const sides = songs.map(() => -1)
+  const poses = cards.map(() => pose({}))
+  const sides = cards.map(() => -1)
   let party: { index: number; rarity: Celebrated; start: number } | null = null
   // Like the collection card: hover tilts it, and a finger drags it round.
   const pointer = trackPointer(canvas.parentElement ?? canvas, stage, {

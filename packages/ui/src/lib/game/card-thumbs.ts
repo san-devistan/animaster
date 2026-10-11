@@ -7,12 +7,12 @@ import {
   type Film,
   type Stage,
 } from "@workspace/ui/lib/game/film-scene"
-import type { GameSong } from "@workspace/ui/lib/game/theme"
+import type { GameCardData } from "@workspace/ui/lib/game/theme"
 
-// Same framing as SongCard without its mirror floor.
+// Same framing as GameCard without its mirror floor.
 const THUMB_W = 280
 const THUMB_H = 400
-// The card is raised by this much on its stage, as at the top of SongCard's bob.
+// The card is raised by this much on its stage, as at the top of GameCard's bob.
 const LIFT = 6
 // How far the foil's light turns between the viewport's middle and its edges.
 const TILT = { across: 0.5, down: 0.8 }
@@ -153,7 +153,7 @@ function draw(stamp: number) {
 // Draws a live card into `canvas` until the returned cleanup runs.
 export function mountCardThumb(
   canvas: HTMLCanvasElement,
-  song: GameSong,
+  card: GameCardData,
   onDrawn: () => void
 ) {
   let film: Film | null = null
@@ -174,7 +174,7 @@ export function mountCardThumb(
     canvas.width = scene.renderer.domElement.width
     canvas.height = scene.renderer.domElement.height
     const before = scene.disposables.length
-    const loaded = addFilm(scene, cardFilm(song))
+    const loaded = addFilm(scene, cardFilm(card))
     film = loaded
     loaded.subject.visible = false
     loaded.subject.position.y = LIFT

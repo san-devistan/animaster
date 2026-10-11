@@ -37,7 +37,7 @@ export function ProfilePage() {
           </dl>
 
           <GameProgress
-            label="Billion Club"
+            label="Wild Pack"
             value={PLAYER.owned}
             max={PLAYER.total}
           />
@@ -47,23 +47,23 @@ export function ProfilePage() {
               Recent pulls
             </h2>
             <ul className="mt-3 gap-2 grid">
-              {RECENT.map((song) => (
+              {RECENT.map((card) => (
                 <li
-                  key={song.id}
+                  key={card.id}
                   className="gap-3 p-2 pr-3 flex items-center rounded-3xl bg-card"
                 >
                   <img
-                    src={song.imageUrl}
+                    src={card.imageUrl}
                     alt=""
                     className="size-12 rounded-xl object-cover"
                   />
                   <span className="min-w-0 flex-1">
-                    <b className="text-sm block truncate">{song.title}</b>
+                    <b className="text-sm block truncate">{card.name}</b>
                     <span className="text-xs block truncate text-muted-foreground">
-                      {song.artist}
+                      {card.subtitle}
                     </span>
                   </span>
-                  <RarityBadge rarity={song.rarity} />
+                  <RarityBadge rarity={card.rarity} />
                 </li>
               ))}
             </ul>

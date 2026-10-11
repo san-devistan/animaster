@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Animaster",
+    "slug": "animaster",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "animaster",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true

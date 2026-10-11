@@ -6,7 +6,7 @@ import { WebHaptics, type HapticInput } from "web-haptics"
 export const sfx = createUISFX({
   pack: "glass",
   volume: 0.7,
-  preferences: { key: "musi-master:sound" },
+  preferences: { key: "animaster:sound" },
 })
 
 const haptics = new WebHaptics()

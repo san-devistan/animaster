@@ -15,7 +15,7 @@ export const FOIL: ReadonlyArray<readonly [string, number]> = [
 export type Stops = ReadonlyArray<readonly [string, number]>
 
 // Two-colour foil: A owns the card, B is one narrow band placed high on the
-// diagonal (mostly behind the cover) so it shows as an accent and on tilt.
+// diagonal (mostly behind the image) so it shows as an accent and on tilt.
 const DUO_AT = [0, 0.12, 0.24, 0.3, 0.35, 0.46, 0.6] as const
 const duo = ([a, aLight, hi, b, bLight]: ReadonlyArray<string>): Stops =>
   [a, aLight, hi, b, bLight, aLight, a].map(
@@ -38,13 +38,12 @@ export const BRAND = {
   mesh: ["#a238ff", "#c470f8", "#7b2cff", "#d9a0ff"],
 }
 
-export type GameSong = {
+export type GameCardData = {
   id: string
-  title: string
-  artist: string
+  name: string
+  subtitle: string
   imageUrl: string
-  streams: number
-  rank: number
+  stat: string
   rarity: Rarity
 }
 

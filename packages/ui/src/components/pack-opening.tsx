@@ -16,7 +16,7 @@ import {
 } from "@workspace/ui/lib/game/opening-scene"
 import { REVEAL_PLAYED } from "@workspace/ui/lib/game/reveal-motion"
 import { play, sfx } from "@workspace/ui/lib/game/sfx"
-import type { GameSong } from "@workspace/ui/lib/game/theme"
+import type { GameCardData } from "@workspace/ui/lib/game/theme"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   useEffect,
@@ -39,7 +39,7 @@ const FLICK_WINDOW = 100
 const REVEAL_AFTER = 0.2
 
 type Phase = OpeningPhase | "cards"
-export type PackPull = GameSong & { isNew?: boolean }
+export type PackPull = GameCardData & { isNew?: boolean }
 
 type Point = { x: number; y: number; at: number }
 // Where a drag started, and its moves over the last FLICK_WINDOW ms.
@@ -71,7 +71,7 @@ const revealedIn = (pull: PackPull | undefined, delay: number) =>
 
 type PackOpeningProps = {
   pulls: ReadonlyArray<PackPull>
-  covers: ReadonlyArray<string>
+  images: ReadonlyArray<string>
   onDone: () => void
   // True once the pack is tapped open.
   onOpenChange?: (open: boolean) => void
@@ -87,7 +87,7 @@ type PackOpeningProps = {
 // The waiting pack, its cut, and the reveal of its cards, on one canvas.
 function PackOpening({
   pulls,
-  covers,
+  images,
   onDone,
   onOpenChange,
   onCard,
@@ -105,7 +105,7 @@ function PackOpening({
   const [index, setIndex] = useState(0)
   const { party, reveal, reset } = useReveal(pulls, sceneRef)
   const pullKey = pulls.map((pull) => pull.id).join("|")
-  const coverKey = covers.join("|")
+  const imageKey = images.join("|")
   // Latest callback, without remounting the scene when it changes.
   const announce = useEffectEvent((pull: PackPull | null) => onCard?.(pull))
 
@@ -118,7 +118,7 @@ function PackOpening({
     const scene = mountOpeningScene(
       canvas,
       pulls,
-      coverKey.split("|"),
+      imageKey.split("|"),
       () => {
         setPhase("cards")
         setIndex(0)
@@ -134,7 +134,7 @@ function PackOpening({
     }
     // pullKey is the stable identity of pulls.
     // oxlint-disable-next-line react/exhaustive-deps
-  }, [coverKey, pullKey, reset, reveal, entrance])
+  }, [imageKey, pullKey, reset, reveal, entrance])
 
   function enter(next: Phase) {
     setPhase(next)
@@ -230,7 +230,7 @@ function PackOpening({
     else show(index + 1, side)
   }
 
-  const song = pulls[index]
+  const pull = pulls[index]
   const isLast = index === pulls.length - 1
 
   return (
@@ -286,9 +286,9 @@ function PackOpening({
             onPointerCancel={swipeEnd}
           />
           {/* Swiping drives the reveal; these stay for screen readers and keyboards. */}
-          {song ? (
+          {pull ? (
             <p className="sr-only" aria-live="polite">
-              {song.rarity}, card {index + 1} of {pulls.length}
+              {pull.rarity}, card {index + 1} of {pulls.length}
             </p>
           ) : null}
           <div className="sr-only">

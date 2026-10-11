@@ -1,26 +1,22 @@
 import type { Marquee } from "@workspace/ui/lib/game/film-material"
 import { blankCanvas, loadImage } from "@workspace/ui/lib/game/pack-art"
-import { BRAND, type GameSong } from "@workspace/ui/lib/game/theme"
+import { BRAND, type GameCardData } from "@workspace/ui/lib/game/theme"
 
-// Song card artwork drawn to a canvas, in the song card layout
+// Card artwork drawn to a canvas, in the game card layout
 // (240×336, 3px ink border, 24px radius). Rarity foil shows where it's clear.
 // Front only: the card never turns far enough to show its back.
 export const CARD_W = 240
 export const CARD_H = 336
 export const CARD_RADIUS = 24
 const INK = "#121016"
-// The cover sits on an ink frame that shows as a thin ring around the art.
+// The image sits on an ink frame that shows as a thin ring around the art.
 const FRAME = { at: 12.75, size: 214.5, radius: 14 }
 const ART = { at: 15.5, size: 209, radius: 11 }
 
 const DISPLAY = "800 18px 'Unbounded Variable'"
 const UI = "500 14px 'Space Grotesk Variable'"
-const STREAMS = "700 12px 'Space Grotesk Variable'"
+const STAT = "700 12px 'Space Grotesk Variable'"
 const NEW = "900 12px 'Unbounded Variable'"
-const compactNumber = new Intl.NumberFormat("en", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-})
 
 function border(ctx: CanvasRenderingContext2D) {
   ctx.strokeStyle = INK
@@ -30,8 +26,8 @@ function border(ctx: CanvasRenderingContext2D) {
   ctx.stroke()
 }
 
-async function cover(ctx: CanvasRenderingContext2D, song: GameSong) {
-  const image = await loadImage(song.imageUrl)
+async function picture(ctx: CanvasRenderingContext2D, card: GameCardData) {
+  const image = await loadImage(card.imageUrl)
   ctx.save()
   ctx.shadowColor = "rgb(18 16 22 / 0.35)"
   ctx.shadowBlur = 18
@@ -45,21 +41,32 @@ async function cover(ctx: CanvasRenderingContext2D, song: GameSong) {
   ctx.beginPath()
   ctx.roundRect(ART.at, ART.at, ART.size, ART.size, ART.radius)
   ctx.clip()
-  ctx.drawImage(image, ART.at, ART.at, ART.size, ART.size)
+  const side = Math.min(image.naturalWidth, image.naturalHeight)
+  ctx.drawImage(
+    image,
+    (image.naturalWidth - side) / 2,
+    (image.naturalHeight - side) / 2,
+    side,
+    side,
+    ART.at,
+    ART.at,
+    ART.size,
+    ART.size
+  )
   ctx.restore()
 }
 
-function stats(ctx: CanvasRenderingContext2D, song: GameSong) {
+function stat(ctx: CanvasRenderingContext2D, card: GameCardData) {
   ctx.fillStyle = INK
-  ctx.font = STREAMS
-  ctx.fillText(`${compactNumber.format(song.streams)} streams`, 18.75, 309.5)
+  ctx.font = STAT
+  ctx.fillText(card.stat, 18.75, 309.5)
 }
 
-// Title and artist sit on their own marquee strips so long ones can scroll;
+// Name and subtitle sit on their own marquee strips so long ones can scroll;
 // `pad` keeps text at the 18.7px margin and is where a scrolling line fades.
 const CAPTION_BOX = { x: 10.7, width: 218.5, pad: 8 }
 const CAPTIONS = {
-  title: {
+  name: {
     font: DISPLAY,
     spacing: "-0.72px",
     color: INK,
@@ -67,7 +74,7 @@ const CAPTIONS = {
     top: 236,
     height: 28,
   },
-  artist: {
+  subtitle: {
     font: UI,
     spacing: "0px",
     color: "rgb(18 16 22 / 0.8)",
@@ -147,36 +154,7 @@ export async function drawSticker(
   return canvas
 }
 
-// Record grooves round a violet label, like the 2D .card-back disc.
-function disc(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  ctx.save()
-  ctx.shadowColor = "rgb(18 16 22 / 0.35)"
-  ctx.shadowBlur = 16
-  ctx.shadowOffsetY = 6
-  ctx.fillStyle = INK
-  ctx.beginPath()
-  ctx.arc(x, y, 48, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.restore()
-  ctx.strokeStyle = "#26222d"
-  ctx.lineWidth = 0.6
-  for (let radius = 21; radius < 47; radius += 2.5) {
-    ctx.beginPath()
-    ctx.arc(x, y, radius, 0, Math.PI * 2)
-    ctx.stroke()
-  }
-  for (const [radius, color] of [
-    [15, BRAND.color],
-    [3, "#f5f2ea"],
-  ] as const) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.arc(x, y, radius, 0, Math.PI * 2)
-    ctx.fill()
-  }
-}
-
-// The card's back, as on the 2D card back: violet mesh, record, wordmark.
+// The card's back, as on the 2D card back: violet mesh and wordmark.
 export async function drawCardBack() {
   await Promise.all(
     ["900 28px 'Unbounded Variable'", "600 12px 'Space Grotesk Variable'"].map(
@@ -193,22 +171,21 @@ export async function drawCardBack() {
   )
   ctx.fillStyle = mesh
   ctx.fillRect(0, 0, CARD_W, CARD_H)
-  disc(ctx, CARD_W / 2, 137)
   ctx.fillStyle = BRAND.on
   ctx.textAlign = "center"
   ctx.font = "900 28px 'Unbounded Variable'"
-  ctx.fillText("MUSI", CARD_W / 2, 219)
+  ctx.fillText("ANI", CARD_W / 2, 164)
   ctx.font = "600 12px 'Space Grotesk Variable'"
   ctx.letterSpacing = "3.6px"
   ctx.globalAlpha = 0.7
-  ctx.fillText("MASTER", CARD_W / 2 + 1.8, 245)
+  ctx.fillText("MASTER", CARD_W / 2 + 1.8, 190)
   ctx.globalAlpha = 1
   border(ctx)
   return canvas
 }
 
 // Rounded card outline for the alpha test (green), with the card border and
-// the cover ring marked in red so rarer cards can foil them alike.
+// the image ring marked in red so rarer cards can foil them alike.
 function cardShape() {
   const { canvas, ctx } = blankCanvas(CARD_W, CARD_H)
   ctx.fillStyle = "#00ff00"
@@ -225,17 +202,17 @@ function cardShape() {
   return canvas
 }
 
-export async function drawCardArt(song: GameSong) {
+export async function drawCardArt(card: GameCardData) {
   await Promise.all(
-    [DISPLAY, UI, STREAMS].map((font) => document.fonts.load(font))
+    [DISPLAY, UI, STAT].map((font) => document.fonts.load(font))
   )
   const front = blankCanvas(CARD_W, CARD_H)
-  await cover(front.ctx, song)
-  stats(front.ctx, song)
+  await picture(front.ctx, card)
+  stat(front.ctx, card)
   border(front.ctx)
   return {
     front: front.canvas,
     shape: cardShape(),
-    marquees: [caption(song.title, "title"), caption(song.artist, "artist")],
+    marquees: [caption(card.name, "name"), caption(card.subtitle, "subtitle")],
   }
 }

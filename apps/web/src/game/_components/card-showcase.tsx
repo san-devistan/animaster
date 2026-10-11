@@ -1,30 +1,22 @@
-import { ListenLinks } from "@/game/_components/listen-links"
-import { useSongPreview } from "@/game/_hooks/use-song-preview"
-import type { CollectedSong } from "@/game/_lib/demo-data"
+import type { CollectedCard } from "@/game/_lib/demo-data"
 import { Button } from "@workspace/ui/components/button"
 import { Celebration } from "@workspace/ui/components/celebration"
 import { CountBadge } from "@workspace/ui/components/count-badge"
+import {
+  GameCard,
+  type GameCardHandle,
+} from "@workspace/ui/components/game-card"
 import { GameMotes } from "@workspace/ui/components/game-motes"
 import { GameStage } from "@workspace/ui/components/game-stage"
-import {
-  SongCard,
-  type SongCardHandle,
-} from "@workspace/ui/components/song-card"
 import type { CardSlot } from "@workspace/ui/lib/game/card-scene"
 import { FLY, REVEAL_PLAYED } from "@workspace/ui/lib/game/reveal-motion"
 import { play, REVEAL } from "@workspace/ui/lib/game/sfx"
 import { XIcon } from "lucide-react"
-import {
-  useEffect,
-  useEffectEvent,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useEventListener } from "usehooks-ts"
 
-// The showcase: the card lands above a bottom panel of song facts, playback
-// and links, and the close button. Sizes in CSS px.
+// The showcase: the card lands above a bottom panel of card facts and the
+// close button. Sizes in CSS px.
 const CARD_RATIO = 336 / 240
 // How far below the card the facts sit, as a share of its height: inside the
 // mirror, so it fades out just behind them. Space is kept clear above the
@@ -33,16 +25,6 @@ const MIRROR = 0.13
 const TOP_GAP = 48
 // The facts sit this much lower than the card's mirror alone would put them.
 const FACTS_DROP = 16
-// The most seconds the panel waits past the reveal for a slow song to start.
-const SONG_WAIT = 2
-const MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ")
-
-// "1991-09-24" as "24 Sep 1991", the same for everyone (no locale or zone).
-function releaseDay(date: string) {
-  const [year, month, day] = date.split("-")
-  const name = MONTHS[Number(month) - 1]
-  return [day && String(Number(day)), name, year].filter(Boolean).join(" ")
-}
 
 // Where the showcased card lands: as big as the pile allows, sitting low so
 // its mirror fades out behind the facts text (`factsAt`, its middle, in px).
@@ -61,13 +43,13 @@ function landing(width: number, height: number, factsAt: number) {
 // The picked card, the grid slot it flies from, and where it is in its trip:
 // still sitting on its thumb, out on show, or flying home.
 export type Showcase = {
-  song: CollectedSong
+  card: CollectedCard
   from: CardSlot | undefined
   phase: "lifting" | "shown" | "returning"
 }
 
 export function CardDetail({
-  showcase: { song, from, phase },
+  showcase: { card, from, phase },
   home,
   onShown,
   onReturn,
@@ -80,21 +62,16 @@ export function CardDetail({
   onClose: () => void
 }) {
   const closeRef = useRef<HTMLButtonElement>(null)
-  const cardRef = useRef<SongCardHandle>(null)
+  const cardRef = useRef<GameCardHandle>(null)
   const factsRef = useRef<HTMLDListElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const [landed, setLanded] = useState(false)
-  // The facts, links and close button show once the reveal has played out
-  // and the song is heard, so they come in with it.
+  // The facts and close button show once the reveal has played out.
   const [settled, setSettled] = useState(false)
   // Measured once the panel is laid out, before the card mounts.
   const [land, setLand] = useState<ReturnType<typeof landing> | null>(null)
-  const preview = useSongPreview(song.id)
   // Out on show, between take-off and heading home.
   const flying = phase === "shown"
-  // Fully in once the card has landed and its reveal has played: it fades in
-  // over the end of the reveal. Resolves once it's heard, or won't be.
-  const autoplay = useEffectEvent((by: number) => preview.autoplay(by))
 
   useLayoutEffect(() => {
     const box = factsRef.current?.getBoundingClientRect()
@@ -124,36 +101,24 @@ export function CardDetail({
   useEffect(() => {
     if (!flying) return undefined
     const timers: Array<ReturnType<typeof setTimeout>> = []
-    let cancelled = false
-    const after = (seconds: number) =>
-      new Promise<void>((resolve) => {
-        timers.push(setTimeout(resolve, seconds * 1000))
-      })
     timers.push(setTimeout(() => setLanded(true), FLY * 1000))
-    const played = FLY + REVEAL_PLAYED[song.rarity]
-    // A slow preview holds the panel back only so long: it has the close
-    // button.
-    async function settle() {
-      await Promise.all([
-        after(played),
-        Promise.race([autoplay(played), after(played + SONG_WAIT)]),
-      ])
-      if (!cancelled) setSettled(true)
-    }
-    void settle()
-    if (song.rarity === "legendary") {
+    timers.push(
+      setTimeout(
+        () => setSettled(true),
+        (FLY + REVEAL_PLAYED[card.rarity]) * 1000
+      )
+    )
+    if (card.rarity === "legendary") {
       timers.push(setTimeout(() => play(REVEAL.legendary), FLY * 1000 + 850))
     }
-    play(song.rarity === "legendary" ? "swipe" : REVEAL[song.rarity])
+    play(card.rarity === "legendary" ? "swipe" : REVEAL[card.rarity])
     return () => {
-      cancelled = true
       for (const timer of timers) clearTimeout(timer)
     }
-  }, [song, flying])
+  }, [card, flying])
 
   async function close() {
     if (phase === "returning") return
-    preview.stop()
     onReturn()
     setLanded(false)
     setSettled(false)
@@ -169,7 +134,7 @@ export function CardDetail({
   return (
     <dialog
       open
-      aria-label={song.title}
+      aria-label={card.name}
       className="inset-0 p-0 m-0 fixed z-30 size-full max-h-none max-w-none bg-transparent text-ink"
     >
       {/* Under the card: the packs page's glowing motes and its celebration,
@@ -181,28 +146,28 @@ export function CardDetail({
           className="md:max-w-md md:max-h-216 md:aspect-393/852 md:w-auto mx-auto size-full"
         >
           <GameMotes shown={flying} />
-          {landed && (song.rarity === "epic" || song.rarity === "legendary") ? (
-            <Celebration rarity={song.rarity} />
+          {landed && (card.rarity === "epic" || card.rarity === "legendary") ? (
+            <Celebration rarity={card.rarity} />
           ) : null}
         </GameStage>
       </div>
       {/* The whole viewport, so the card can fly from anywhere in the grid. */}
       {land ? (
-        <SongCard
+        <GameCard
           ref={cardRef}
-          song={song}
+          card={card}
           from={from}
           land={land}
           reveal={!from}
           onReady={takeOff}
         />
       ) : null}
-      {song.copies > 1 ? (
+      {card.copies > 1 ? (
         <div
           data-shown={flying || undefined}
           className="inset-x-0 top-0 px-5 md:px-8 md:pt-8 -translate-y-4 data-shown:translate-y-0 pointer-events-none absolute flex justify-end game-safe-top opacity-0 transition duration-300 data-shown:opacity-100"
         >
-          <CountBadge count={song.copies} />
+          <CountBadge count={card.copies} />
         </div>
       ) : null}
       <div
@@ -219,12 +184,9 @@ export function CardDetail({
             ref={factsRef}
             className="gap-5 *:pr-5 *:last:pr-0 flex items-center justify-center divide-x-2 divide-ink/15"
           >
-            <SongFact label="BPM" value={String(song.bpm)} />
-            <SongFact label="Released" value={releaseDay(song.releaseDate)} />
+            <CardFact label="Type" value={card.stat} />
+            <CardFact label="Rarity" value={card.rarity} />
           </dl>
-          <div className="gap-3 flex items-center justify-center">
-            <ListenLinks song={song} />
-          </div>
           {/* Wrapped: the button's own transition would override the row's. */}
           <div className="mt-6">
             <Button
@@ -243,7 +205,7 @@ export function CardDetail({
   )
 }
 
-function SongFact({ label, value }: { label: string; value: string }) {
+function CardFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-center">
       <dt className="text-xs font-semibold tracking-wide text-ink/60 uppercase">

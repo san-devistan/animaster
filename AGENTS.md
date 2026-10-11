@@ -1,6 +1,6 @@
 # Repository Guide
 
-A pnpm monorepo for `musi-master` (`<project-name>` below). Follow the
+A pnpm monorepo for `animaster` (`<project-name>` below). Follow the
 patterns already here before introducing new ones.
 
 ## How It Fits Together

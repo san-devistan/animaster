@@ -28,7 +28,7 @@ import {
   span,
   type Pose,
 } from "@workspace/ui/lib/game/reveal-motion"
-import { RARITIES, type GameSong } from "@workspace/ui/lib/game/theme"
+import { RARITIES, type GameCardData } from "@workspace/ui/lib/game/theme"
 import * as THREE from "three"
 
 // Card stock: about 0.5 mm on a 63 mm wide card.
@@ -95,9 +95,9 @@ function cardEdge(color: string, metal: number) {
 
 export const CARD_THICKNESS = THICKNESS
 
-export function cardFilm(song: GameSong): FilmSpec {
-  const { metal, ...look } = RARITY[song.rarity]
-  const stops = RARITIES[song.rarity]
+export function cardFilm(card: GameCardData): FilmSpec {
+  const { metal, ...look } = RARITY[card.rarity]
+  const stops = RARITIES[card.rarity]
   return {
     width: CARD_W,
     height: CARD_H,
@@ -110,7 +110,7 @@ export function cardFilm(song: GameSong): FilmSpec {
     ...look,
     // Common cards keep the 2D ink edge; rarer ones show their foil colour.
     solids: [cardEdge(metal ? (stops[0]?.[0] ?? "#121016") : "#121016", metal)],
-    draw: () => drawCardArt(song),
+    draw: () => drawCardArt(card),
   }
 }
 
@@ -311,13 +311,13 @@ export type CardScene = {
 
 export function mountCardScene(
   canvas: HTMLCanvasElement,
-  song: GameSong,
+  card: GameCardData,
   { mirror = true, reveal = false, from, land }: CardSceneOptions = {}
 ): CardScene {
-  const stage = mountFilmScene(canvas, cardFilm(song), mirror)
-  const flight = from && !stage.still ? flyCard(stage, song, from, land) : null
+  const stage = mountFilmScene(canvas, cardFilm(card), mirror)
+  const flight = from && !stage.still ? flyCard(stage, card, from, land) : null
   if (!flight && land) frame(stage, land)
-  if (!flight && reveal && !stage.still) revealCard(stage, song, !land)
+  if (!flight && reveal && !stage.still) revealCard(stage, card, !land)
   // A frame after the art lands, so the card is on screen.
   const ready = stage.film.ready.then(
     () => new Promise<void>((done) => requestAnimationFrame(() => done()))
@@ -354,7 +354,7 @@ function entrance(stage: CardStage) {
 // Once landed, epic and legendary cards play their first-pull celebration
 // and light sweep.
 function celebrate(
-  rarity: GameSong["rarity"],
+  rarity: GameCardData["rarity"],
   at: Pose,
   since: number,
   shine: ReturnType<typeof cardShine>
@@ -389,7 +389,7 @@ function frame(stage: CardStage, land: CardSceneOptions["land"]) {
 
 // Pack-opening entrance on a phone-sized canvas framed like the opened pile:
 // the card rises into place, then celebrates.
-function revealCard(stage: CardStage, song: GameSong, pile: boolean) {
+function revealCard(stage: CardStage, card: GameCardData, pile: boolean) {
   if (pile) stage.camera.position.z /= PILE_ZOOM
   const { motion, mirrored, shine } = entrance(stage)
   const start = stage.time.value
@@ -399,7 +399,7 @@ function revealCard(stage: CardStage, song: GameSong, pile: boolean) {
     // Starts low but fully in view, like a card rising out of the pack.
     const low = pose({ y: -150, z: -160, rx: 0.4, s: 0.8 })
     const at = celebrate(
-      song.rarity,
+      card.rarity,
       mix(low, pose({}), rise),
       since - RISE,
       shine
@@ -416,7 +416,7 @@ const LIFT = 140
 // to the middle and celebrates; flyBack lays it back in a slot.
 function flyCard(
   stage: CardStage,
-  song: GameSong,
+  card: GameCardData,
   from: CardSlot,
   land?: CardSceneOptions["land"]
 ) {
@@ -469,7 +469,7 @@ function flyCard(
       at = mix(start, pose({}), easeInOut(t))
       at.z += LIFT * Math.sin(Math.PI * t)
       at.rx += 0.3 * Math.sin(Math.PI * t)
-      at = celebrate(song.rarity, at, since - FLY, shine)
+      at = celebrate(card.rarity, at, since - FLY, shine)
     }
     // In its slot the card sits flat and lit like the thumb: the outer group
     // cancels the film's sway and bob there, and they grow in as it flies.

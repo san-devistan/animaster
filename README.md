@@ -15,6 +15,10 @@ flowchart LR
   Backend --> Mobile
 ```
 
+Animaster is an animal card game starter. The web app currently uses static
+demo cards in `apps/web/src/game/_lib/demo-data.ts`; the Convex backend starts
+with an empty schema.
+
 ## Design System Flow
 
 - `packages/ui/src/styles/globals.css` holds the shared shadcn tokens.
@@ -24,7 +28,8 @@ flowchart LR
 ## AI Setup
 
 - Skills are scoped under each workspace's `.agents/skills` directory.
-- Configured MCPs cover Convex, Better Auth, Stripe, shadcn, and Vercel.
+- Configured MCPs cover Convex, Better Auth, Stripe, shadcn, Vercel, and
+  Soundcharts.
 
 ## Quality Gate
 
@@ -49,7 +54,6 @@ flowchart LR
 
 ## Set Up
 
-- replace `name-of-project` in the codebase
 - run `pnpm self-update` and `pnpm update:deps`
 - apply a web theme with
   `pnpm dlx shadcn@latest apply --preset [preset-id] --cwd apps/web --yes`

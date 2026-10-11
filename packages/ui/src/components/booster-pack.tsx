@@ -6,19 +6,19 @@ import { useEffect, useRef } from "react"
 
 // A three.js booster pack. Hover, or touch and drag, to turn it.
 function BoosterPack({
-  covers,
+  images,
   className,
 }: {
-  covers: ReadonlyArray<string>
+  images: ReadonlyArray<string>
   className?: string
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const coverKey = covers.join("|")
+  const imageKey = images.join("|")
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return undefined
-    const unmount = mountPackScene(canvas, coverKey.split("|"))
+    const unmount = mountPackScene(canvas, imageKey.split("|"))
     const drag = { x: 0, y: 0, moved: false }
     const onDown = (event: PointerEvent) => {
       Object.assign(drag, { x: event.clientX, y: event.clientY, moved: false })
@@ -43,14 +43,14 @@ function BoosterPack({
       canvas.removeEventListener("click", onClick)
       unmount()
     }
-  }, [coverKey])
+  }, [imageKey])
 
   return (
     <canvas
       ref={canvasRef}
       data-slot="booster-pack"
       className={cn("game-canvas touch-none select-none", className)}
-      aria-label="Billion Club booster pack, 5 song cards"
+      aria-label="Wild Pack booster, 5 animal cards"
     />
   )
 }

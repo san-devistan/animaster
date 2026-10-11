@@ -23,11 +23,11 @@ export const Route = createRootRouteWithContext<{
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       {
-        title: "Musi Master",
+        title: "Animaster",
       },
       { name: "theme-color", content: "#d5c3f8" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-title", content: "Musi Master" },
+      { name: "apple-mobile-web-app-title", content: "Animaster" },
       {
         name: "apple-mobile-web-app-status-bar-style",
         content: "black-translucent",

@@ -1,7 +1,7 @@
 {
-  "short_name": "Musi Master",
-  "name": "Musi Master - Music TCG",
-  "description": "Collect cards for the songs you love.",
+  "short_name": "Animaster",
+  "name": "Animaster - Animal TCG",
+  "description": "Collect cards for animals from around the world.",
   "icons": [
     {
       "src": "/icon.svg",

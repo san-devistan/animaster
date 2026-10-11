@@ -1,7 +1,11 @@
 import { CardDetail, type Showcase } from "@/game/_components/card-showcase"
 import { CollectionCount } from "@/game/_components/collection-count"
-import { COLLECTION, type CollectedSong } from "@/game/_lib/demo-data"
+import { COLLECTION, type CollectedCard } from "@/game/_lib/demo-data"
 import { getRouteApi } from "@tanstack/react-router"
+import {
+  GameCardThumb,
+  gameCardThumbSlot,
+} from "@workspace/ui/components/game-card"
 import { GameMain, GameScroll } from "@workspace/ui/components/game-shell"
 import {
   Select,
@@ -10,10 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import {
-  SongCardThumb,
-  songCardThumbSlot,
-} from "@workspace/ui/components/song-card"
 import type { CssVars, Rarity } from "@workspace/ui/lib/game/theme"
 import {
   ArrowDownAZIcon,
@@ -40,26 +40,26 @@ const FILTERS = {
 } as const satisfies Record<"all" | Rarity, string>
 type Filter = keyof typeof FILTERS
 
-const rarityRank = (song: CollectedSong) => RARITY_ORDER.indexOf(song.rarity)
+const rarityRank = (card: CollectedCard) => RARITY_ORDER.indexOf(card.rarity)
 
 const SORTS = {
   recent: {
     label: "Recent",
     Icon: ClockIcon,
-    compare: (a: CollectedSong, b: CollectedSong) =>
+    compare: (a: CollectedCard, b: CollectedCard) =>
       b.pulledOn.localeCompare(a.pulledOn),
   },
   rarest: {
     label: "Rarest",
     Icon: GemIcon,
-    compare: (a: CollectedSong, b: CollectedSong) =>
-      rarityRank(b) - rarityRank(a) || a.rank - b.rank,
+    compare: (a: CollectedCard, b: CollectedCard) =>
+      rarityRank(b) - rarityRank(a) || a.name.localeCompare(b.name),
   },
-  title: {
+  name: {
     label: "A–Z",
     Icon: ArrowDownAZIcon,
-    compare: (a: CollectedSong, b: CollectedSong) =>
-      a.title.localeCompare(b.title),
+    compare: (a: CollectedCard, b: CollectedCard) =>
+      a.name.localeCompare(b.name),
   },
 } as const
 type SortKey = keyof typeof SORTS
@@ -87,20 +87,20 @@ export function CollectionPage() {
   const arriving = landed < added.length
   // The tab bar stays away until the last one is in, so none falls over it.
   const [settled, setSettled] = useState(!arriving)
-  const isLanded = (song: CollectedSong) => {
-    const at = added.indexOf(song.id)
+  const isLanded = (card: CollectedCard) => {
+    const at = added.indexOf(card.id)
     return at < 0 || added.length - 1 - at < landed
   }
   const [filter, setFilter] = useState<Filter>("all")
   const [sort, setSort] = useState<SortKey>("recent")
   const [showcase, setShowcase] = useState<Showcase | null>(null)
   const openerRef = useRef<HTMLButtonElement | null>(null)
-  const selected = showcase?.song ?? null
+  const selected = showcase?.card ?? null
   // The page steps aside once the big card covers its thumb, and comes back
   // as it heads home.
   const immersive = showcase?.phase === "shown"
-  const freshness = (song: CollectedSong) => {
-    const at = added.indexOf(song.id)
+  const freshness = (card: CollectedCard) => {
+    const at = added.indexOf(card.id)
     return at < 0 ? added.length : at
   }
   const order = COLLECTION.toSorted((a, b) =>
@@ -108,8 +108,8 @@ export function CollectionPage() {
       ? freshness(a) - freshness(b) || SORTS.recent.compare(a, b)
       : SORTS[sort].compare(a, b)
   )
-  const isShown = (song: CollectedSong) =>
-    filter === "all" || song.rarity === filter
+  const isShown = (card: CollectedCard) =>
+    filter === "all" || card.rarity === filter
 
   useEffect(() => {
     if (!showcase) openerRef.current?.focus({ preventScroll: true })
@@ -215,16 +215,16 @@ export function CollectionPage() {
         <GameScroll>
           <ul className="gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 grid grid-cols-2">
             {/* Keep WebGL cards mounted while filtering; hide and reorder instead. */}
-            {COLLECTION.map((song) => {
-              const isNew = added.includes(song.id)
+            {COLLECTION.map((card) => {
+              const isNew = added.includes(card.id)
               const orderStyle: CssVars = {
-                "--game-order": String(order.indexOf(song)),
-                "--game-card": `card-${song.id}`,
+                "--game-order": String(order.indexOf(card)),
+                "--game-card": `card-${card.id}`,
               }
               return (
                 <li
-                  key={song.id}
-                  hidden={!isShown(song) || !isLanded(song)}
+                  key={card.id}
+                  hidden={!isShown(card) || !isLanded(card)}
                   className={
                     isNew
                       ? "game-drop game-order game-slides"
@@ -235,21 +235,21 @@ export function CollectionPage() {
                   <button
                     type="button"
                     className="group/card @container relative block w-full rounded-2xl outline-none focus-visible:ring-4 focus-visible:ring-ring"
-                    aria-label={`${song.title} by ${song.artist}, ${song.rarity}${isNew ? ", new" : ""}`}
+                    aria-label={`${card.name}, ${card.subtitle}, ${card.rarity}${isNew ? ", new" : ""}`}
                     onClick={(event) => {
                       openerRef.current = event.currentTarget
                       setShowcase({
-                        song,
+                        card,
                         from:
-                          songCardThumbSlot(event.currentTarget) ?? undefined,
+                          gameCardThumbSlot(event.currentTarget) ?? undefined,
                         phase: "lifting",
                       })
                     }}
                   >
-                    <SongCardThumb
-                      song={song}
-                      copies={song.copies}
-                      away={selected === song && showcase?.phase !== "lifting"}
+                    <GameCardThumb
+                      card={card}
+                      copies={card.copies}
+                      away={selected === card && showcase?.phase !== "lifting"}
                     />
                     {isNew ? (
                       <span
@@ -270,7 +270,7 @@ export function CollectionPage() {
       {showcase ? (
         <CardDetail
           showcase={showcase}
-          home={() => songCardThumbSlot(openerRef.current)}
+          home={() => gameCardThumbSlot(openerRef.current)}
           onShown={() =>
             setShowcase((current) =>
               current ? { ...current, phase: "shown" } : null

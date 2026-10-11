@@ -1,382 +1,112 @@
-import type { GameSong } from "@workspace/ui/lib/game/theme"
+import type { GameCardData } from "@workspace/ui/lib/game/theme"
 
-// What the showcase shows and links to, beyond the card itself.
-type ListenableSong = GameSong & {
-  bpm: number
-  releaseDate: string
-  isrc: string
-  spotifyId: string
-  deezerId: string
-  appleId?: string
-}
+const image = (path: string) =>
+  `https://upload.wikimedia.org/wikipedia/commons/thumb/${path}`
 
-// Snapshot from Convex dev songs, 2026-10-09. Replace with backend queries
-// when the game loop is built. Deezer ids come from the ISRC, Apple ids from
-// the Deezer album's UPC; Taki Taki has no original on Apple Music.
-export const SONGS = [
+// Static demo cards until the animal catalog and game loop exist.
+export const CARDS = [
   {
-    id: "k5764jmczhfvq0yg8wmsg6qw5s8fp7t3",
-    title: "Beautiful Things",
-    artist: "Benson Boone",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b273f85058b7e234523d2d2ef834",
-    streams: 3188699803,
-    rank: 48,
-    bpm: 105,
-    releaseDate: "2024-01-18",
-    isrc: "USWB12307016",
-    spotifyId: "3OD3UsYexvqEH6UHEFHrZu",
-    deezerId: "2610711672",
-    appleId: "1724488124",
+    id: "bengal-tiger",
+    name: "Bengal tiger",
+    subtitle: "Panthera tigris tigris",
+    imageUrl: image(
+      "8/84/Bengal_tiger_in_Sanjay_Dubri_Tiger_Reserve_December_2024_by_Tisha_Mukherjee_11.jpg/960px-Bengal_tiger_in_Sanjay_Dubri_Tiger_Reserve_December_2024_by_Tisha_Mukherjee_11.jpg"
+    ),
+    stat: "Big cat",
     rarity: "legendary",
   },
   {
-    id: "k57615descknafnqkxj5p3cvgd8fq6kv",
-    title: "Come As You Are",
-    artist: "Nirvana",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2739aa37e5baca62ca6cc98d056",
-    streams: 2191656413,
-    rank: 199,
-    bpm: 120,
-    releaseDate: "1991-09-24",
-    isrc: "USGF19942503",
-    spotifyId: "2RsAajgo0g7bMCHxwH3Sk0",
-    deezerId: "13693499",
-    appleId: "1440783636",
-    rarity: "legendary",
-  },
-  {
-    id: "k57dra7t9383msec1pq5jsb1w58fpvnk",
-    title: "Feel Good Inc.",
-    artist: "Gorillaz, De La Soul",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b27322c1b2b58a23408632527ab7",
-    streams: 2573698443,
-    rank: 105,
-    bpm: 139,
-    releaseDate: "2005-05-09",
-    isrc: "GBAYE0500172",
-    spotifyId: "35SJAMEdYx6YNqCaFPInIp",
-    deezerId: "3129407",
-    appleId: "850571371",
-    rarity: "legendary",
-  },
-  {
-    id: "k572p1deh9vqtshnn7h3x6hg4h8fqr7g",
-    title: "7 rings",
-    artist: "Ariana Grande",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8",
-    streams: 2940301935,
-    rank: 67,
-    bpm: 140,
-    releaseDate: "2019-01-18",
-    isrc: "USUM71900110",
-    spotifyId: "6ocbgoVGwYJhOv1GgI9NsF",
-    deezerId: "629899842",
-    appleId: "1450334168",
-    rarity: "legendary",
-  },
-  {
-    id: "k5785d8hacxeza2vdfrwdy06vx8fqy2b",
-    title: "Wolves",
-    artist: "Selena Gomez, Marshmello",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b273307910d4242c0d6b1fedf955",
-    streams: 1582469672,
-    rank: 435,
-    bpm: 125,
-    releaseDate: "2017-10-25",
-    isrc: "USUM71712103",
-    spotifyId: "0tBbt8CrmxbjRP0pueQkyU",
-    deezerId: "420355352",
-    appleId: "1445055017",
+    id: "snow-leopard",
+    name: "Snow leopard",
+    subtitle: "Panthera uncia",
+    imageUrl: image("a/a5/Irbis4.JPG/960px-Irbis4.JPG"),
+    stat: "Mountain cat",
     rarity: "epic",
   },
   {
-    id: "k57aqs8kd1y2cfbyz6vyhcsprd8fqqgk",
-    title: "Taki Taki",
-    artist: "DJ Snake, Selena Gomez, Ozuna, Cardi B",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b273e105c410a7b390c61a58cbf8",
-    streams: 1884866333,
-    rank: 298,
-    bpm: 96,
-    releaseDate: "2018-10-04",
-    isrc: "USUG11801723",
-    spotifyId: "4w8niZpiMy6qz1mntFA5uM",
-    deezerId: "2032499827",
+    id: "red-panda",
+    name: "Red panda",
+    subtitle: "Ailurus fulgens",
+    imageUrl: image(
+      "f/fd/Red_Panda%2C_Gentle_Tree-Dweller_of_the_Himalayas.jpg/960px-Red_Panda%2C_Gentle_Tree-Dweller_of_the_Himalayas.jpg"
+    ),
+    stat: "Tree climber",
+    rarity: "rare",
+  },
+  {
+    id: "axolotl",
+    name: "Axolotl",
+    subtitle: "Ambystoma mexicanum",
+    imageUrl: image("0/00/Axolotl_ganz.jpg/960px-Axolotl_ganz.jpg"),
+    stat: "Amphibian",
+    rarity: "rare",
+  },
+  {
+    id: "fennec-fox",
+    name: "Fennec fox",
+    subtitle: "Vulpes zerda",
+    imageUrl: image(
+      "9/9f/Fennec_Fox_Vulpes_zerda.jpg/960px-Fennec_Fox_Vulpes_zerda.jpg"
+    ),
+    stat: "Desert fox",
+    rarity: "common",
+  },
+  {
+    id: "komodo-dragon",
+    name: "Komodo dragon",
+    subtitle: "Varanus komodoensis",
+    imageUrl: image(
+      "f/f5/202306_Varanus_komodoensis.jpg/960px-202306_Varanus_komodoensis.jpg"
+    ),
+    stat: "Reptile",
     rarity: "epic",
   },
   {
-    id: "k57101j55aq66tbxex92qynak58fqqr2",
-    title: "Electric Love",
-    artist: "BØRNS",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b273cc2cf912462d8ae4ef856434",
-    streams: 1427929649,
-    rank: 546,
-    bpm: 120,
-    releaseDate: "2014-11-10",
-    isrc: "USUM71416307",
-    spotifyId: "2GiJYvgVaD2HtM8GqD9EgQ",
-    deezerId: "89359729",
-    appleId: "1445291884",
-    rarity: "epic",
-  },
-  {
-    id: "k57e7ez2vzyaaxebv0hwmq9rnx8fpysa",
-    title: "I Hate Everything About You",
-    artist: "Three Days Grace",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2735d4bd2c345c95e847b586403",
-    streams: 1358112211,
-    rank: 602,
-    bpm: 89,
-    releaseDate: "2003-04-28",
-    isrc: "USJI10300075",
-    spotifyId: "0M955bMOoilikPXwKLYpoi",
-    deezerId: "541012",
-    appleId: "298376639",
-    rarity: "epic",
-  },
-  {
-    id: "k57dvpy05znqed5gztebmw9zg98fv9xn",
-    title: "You Don't Know Me",
-    artist: "Jax Jones, RAYE",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2731d883d3f10af481faa3c7e04",
-    streams: 758363980,
-    rank: 1594,
-    bpm: 124,
-    releaseDate: "2016-12-09",
-    isrc: "GBUM71606456",
-    spotifyId: "1rFMYAZxBoAKSzXI54brMu",
-    deezerId: "137728875",
-    appleId: "1445027580",
+    id: "bald-eagle",
+    name: "Bald eagle",
+    subtitle: "Haliaeetus leucocephalus",
+    imageUrl: image(
+      "d/db/Bald_eagle_about_to_fly_in_Alaska_%282016%29.jpg/960px-Bald_eagle_about_to_fly_in_Alaska_%282016%29.jpg"
+    ),
+    stat: "Bird of prey",
     rarity: "rare",
   },
   {
-    id: "k57b50vbwbs50hzt0t3j8p6cf58fv1rj",
-    title: "Say It",
-    artist: "Tory Lanez",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2739f7ce2227875fd3d645fb5d6",
-    streams: 786883367,
-    rank: 1509,
-    bpm: 107,
-    releaseDate: "2015-07-31",
-    isrc: "USUM71510633",
-    spotifyId: "2Gyc6e2cLxA5hoX1NOvYnU",
-    deezerId: "130414940",
-    appleId: "1443126796",
-    rarity: "rare",
-  },
-  {
-    id: "k573sfzw27m4xcep2c0kdt1hhh8fvt50",
-    title: "White Mustang",
-    artist: "Lana Del Rey",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b27395e2fd1accb339fa14878190",
-    streams: 482263693,
-    rank: 2894,
-    bpm: 115,
-    releaseDate: "2017-07-21",
-    isrc: "GBUM71702622",
-    spotifyId: "6eygbzyL6hY8jFQTARDuo9",
-    deezerId: "383962101",
-    appleId: "1440900264",
-    rarity: "rare",
-  },
-  {
-    id: "k5707cm4fvfzr9yek1bxe7d7as8fv6sf",
-    title: "Death of a Bachelor",
-    artist: "Panic! At The Disco",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b27323152d9337d6c57b116ed13a",
-    streams: 478194653,
-    rank: 2925,
-    bpm: 139,
-    releaseDate: "2015-12-09",
-    isrc: "USAT21503696",
-    spotifyId: "1BECwm5qkaBwlbfo4kpYx8",
-    deezerId: "116866556",
-    appleId: "1050385382",
-    rarity: "rare",
-  },
-  {
-    id: "k57cy6kadq6jsaq1txwv1q5d658ftcgz",
-    title: "Keep Ya Head Up",
-    artist: "2Pac",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2737f6f6c9e4b492a3d7e910d82",
-    streams: 411214078,
-    rank: 3525,
-    bpm: 172,
-    releaseDate: "1993-02-16",
-    isrc: "USIR19300813",
-    spotifyId: "0WzRs3jLFAqUjntdQKqQHK",
-    deezerId: "12901240",
-    appleId: "1669626148",
-    rarity: "rare",
-  },
-  {
-    id: "k57ctf8nd7dnv4dymhy685z15x8fvvk6",
-    title: "1999",
-    artist: "Charli xcx, Troye Sivan",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b273a4ad09abe4e62f88e8238471",
-    streams: 273843188,
-    rank: 5592,
-    bpm: 124,
-    releaseDate: "2018-10-05",
-    isrc: "GBAHS1800662",
-    spotifyId: "05mAIVLkIWc2d1UBYZBCp8",
-    deezerId: "562719802",
-    appleId: "1468263367",
+    id: "arctic-fox",
+    name: "Arctic fox",
+    subtitle: "Vulpes lagopus",
+    imageUrl: image(
+      "d/dc/Vulpes_lagopus_in_Iceland_%28cropped_3%29.jpg/960px-Vulpes_lagopus_in_Iceland_%28cropped_3%29.jpg"
+    ),
+    stat: "Polar mammal",
     rarity: "common",
   },
-  {
-    id: "k575pyvrwb2yd4h886c6ksgatn8fvm41",
-    title: "Movin' Out (Anthony's Song)",
-    artist: "Billy Joel",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2736ce61113662ecf693b605ee5",
-    streams: 243992168,
-    rank: 6297,
-    bpm: 134,
-    releaseDate: "1977-09-29",
-    isrc: "USSM17700369",
-    spotifyId: "4cG3ovmC8Hnp9ZsmSZI2O4",
-    deezerId: "968743",
-    appleId: "158617967",
-    rarity: "common",
-  },
-  {
-    id: "k57b4g86f178jjnyc6j5qp0ps58fv6wp",
-    title: "Heavy Eyes",
-    artist: "Zach Bryan",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2735d2676e12a38ad50bc3ac85b",
-    streams: 214488845,
-    rank: 7238,
-    bpm: 140,
-    releaseDate: "2022-05-20",
-    isrc: "USWB12201477",
-    spotifyId: "2gJj6WtAxXjApMs3PXsCeX",
-    deezerId: "1736518367",
-    appleId: "1620257604",
-    rarity: "common",
-  },
-  {
-    id: "k577qpjq0ayeva8q29xqkqqre98fv6cp",
-    title: "Da Funk",
-    artist: "Daft Punk",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b27387aa91b6ba6b4fded7bf3293",
-    streams: 137082973,
-    rank: 11244,
-    bpm: 111,
-    releaseDate: "1995-05-08",
-    isrc: "GBDUW0600006",
-    spotifyId: "4IUkEUQmp2HkJZrf0vUru5",
-    deezerId: "3129772",
-    appleId: "1609438402",
-    rarity: "common",
-  },
-  {
-    id: "k57fcbv7zr8b2w6dpjbc2fj6258ftq77",
-    title: "Kill Rock 'n Roll",
-    artist: "System Of A Down",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b273f5e7b2e5adaa87430a3eccff",
-    streams: 110772812,
-    rank: 13588,
-    bpm: 185,
-    releaseDate: "2002-11-26",
-    isrc: "USSM10505333",
-    spotifyId: "28TReO2Mxk9Q3GA4K98YSz",
-    deezerId: "546570",
-    appleId: "159457242",
-    rarity: "common",
-  },
-  {
-    id: "k57dn8rnj19d4746fwjzy0k2k58fvf1e",
-    title: "Oprah's Bank Account",
-    artist: "Lil Yachty, DaBaby, Drake",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2735ee839f6415e0d02fc4f2b49",
-    streams: 244358274,
-    rank: 6273,
-    bpm: 138,
-    releaseDate: "2020-03-09",
-    isrc: "USUG11902884",
-    spotifyId: "0LEFmgIj8ABU7CelzGh5Bs",
-    deezerId: "897652872",
-    appleId: "1501942915",
-    rarity: "common",
-  },
-  {
-    id: "k579aktzkx8r4dhwthztfejmz18fpp9r",
-    title: "Rocket Man (I Think It's Going To Be A Long, Long Time)",
-    artist: "Elton John",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2733009007708ab5134936a58b3",
-    streams: 1594993356,
-    rank: 428,
-    bpm: 137,
-    releaseDate: "1972-03-31",
-    isrc: "GBAMB7200006",
-    spotifyId: "3gdewACMIVMEWVbyb8O9sY",
-    deezerId: "1144863",
-    appleId: "1440910931",
-    rarity: "epic",
-  },
-  {
-    id: "k575xete6fzrvktbtdmjrpaaa58fvm2g",
-    title: "We Don't Talk About Bruno",
-    artist:
-      "Carolina Gaitán - La Gaita, Mauro Castillo, Adassa, Rhenzy Feliz, Diane Guerrero, Stephanie Beatriz, Encanto - Cast",
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b273e1ac646ed6f25125e2a77229",
-    streams: 642793004,
-    rank: 2013,
-    bpm: 206,
-    releaseDate: "2021-11-19",
-    isrc: "USWD12112915",
-    spotifyId: "52xJxFP6TqMuO4Yt0eOkMz",
-    deezerId: "1550821762",
-    appleId: "1640179849",
-    rarity: "rare",
-  },
-] as const satisfies ReadonlyArray<ListenableSong>
+] as const satisfies ReadonlyArray<GameCardData>
 
-export type DemoSong = (typeof SONGS)[number]
-
-export const COLLECTION = SONGS.map((song, index) => ({
-  ...song,
+export const COLLECTION = CARDS.map((card, index) => ({
+  ...card,
   copies: index % 5 === 1 ? 2 : 1,
-  pulledOn: `2026-10-${String(9 - (index % 7)).padStart(2, "0")}`,
+  pulledOn: `2026-10-${String(11 - (index % 7)).padStart(2, "0")}`,
 }))
 
-export type CollectedSong = (typeof COLLECTION)[number]
+export type CollectedCard = (typeof COLLECTION)[number]
 
-export const PACK_COVERS = SONGS.slice(0, 4).map((song) => song.imageUrl)
+export const PACK_IMAGES = CARDS.slice(0, 4).map((card) => card.imageUrl)
 
+// Rarest last, so the reveal builds up like a real pack.
 export const DEMO_PACK = [
-  { ...SONGS[16], isNew: false },
-  { ...SONGS[13], isNew: true },
-  { ...SONGS[9], isNew: true },
-  { ...SONGS[5], isNew: true },
-  { ...SONGS[0], isNew: false },
+  { ...CARDS[7], isNew: false },
+  { ...CARDS[4], isNew: true },
+  { ...CARDS[3], isNew: true },
+  { ...CARDS[5], isNew: true },
+  { ...CARDS[0], isNew: false },
 ]
 
 export const PLAYER = {
   name: "Léo",
-  level: 7,
+  level: 1,
   owned: COLLECTION.length,
-  total: 14799,
-  packs: 38,
-  streak: "7d",
+  total: CARDS.length,
+  packs: 1,
+  streak: "1d",
 }

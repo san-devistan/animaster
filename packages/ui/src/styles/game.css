@@ -144,31 +144,6 @@
   color: var(--brand-foreground);
 }
 
-.game-disc {
-  width: 40%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background:
-    radial-gradient(
-      circle,
-      var(--paper) 0 3%,
-      var(--brand) 3.5% 15%,
-      var(--ink) 15.5% 19%,
-      transparent 19.5%
-    ),
-    conic-gradient(
-      from 40deg,
-      transparent,
-      rgb(255 255 255 / 0.14) 8%,
-      transparent 18%,
-      transparent 50%,
-      rgb(255 255 255 / 0.14) 58%,
-      transparent 68%
-    ),
-    repeating-radial-gradient(circle, var(--ink) 0 1.5px, #26222d 2px 2.5px);
-  box-shadow: 0 6px 16px rgb(18 16 22 / 0.35);
-}
-
 .game-glare {
   position: absolute;
   inset: 0;

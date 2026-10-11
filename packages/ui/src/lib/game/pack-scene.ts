@@ -66,11 +66,11 @@ export const packFilm = (draw: FilmSpec["draw"], band?: number): FilmSpec => ({
 
 export const mountPackScene = (
   canvas: HTMLCanvasElement,
-  covers: ReadonlyArray<string>
+  images: ReadonlyArray<string>
 ) =>
   mountFilmScene(
     canvas,
-    packFilm(() => drawPackArt(covers))
+    packFilm(() => drawPackArt(images))
   ).dispose
 
 const flat = new WeakMap<THREE.BufferGeometry, THREE.BufferAttribute>()

@@ -11,7 +11,7 @@ import {
   cardThumbSlot,
   mountCardThumb,
 } from "@workspace/ui/lib/game/card-thumbs"
-import type { GameSong } from "@workspace/ui/lib/game/theme"
+import type { GameCardData } from "@workspace/ui/lib/game/theme"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   useEffect,
@@ -24,25 +24,25 @@ import {
 
 // Sends a flown-in card back to a slot (re-measured each frame); resolves
 // once it lands.
-type SongCardHandle = Pick<CardScene, "flyBack">
+type GameCardHandle = Pick<CardScene, "flyBack">
 
-type SongCardProps = {
-  song: GameSong
+type GameCardProps = {
+  card: GameCardData
   mirror?: boolean
   reveal?: boolean
-  // Fly in from this on-screen slot (see songCardThumbSlot) instead.
+  // Fly in from this on-screen slot (see gameCardThumbSlot) instead.
   from?: CardSlot
   // Where a flown-in card lands, relative to the canvas middle.
   land?: CardSceneOptions["land"]
   // Called once the card is drawn where it starts.
   onReady?: () => void
-  ref?: Ref<SongCardHandle>
+  ref?: Ref<GameCardHandle>
   className?: string
 }
 
-// A three.js song card: printed film on rarity foil.
-function SongCard({
-  song,
+// A three.js game card: printed film on rarity foil.
+function GameCard({
+  card,
   mirror = true,
   reveal = false,
   from,
@@ -50,7 +50,7 @@ function SongCard({
   onReady,
   ref,
   className,
-}: SongCardProps) {
+}: GameCardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sceneRef = useRef<CardScene | null>(null)
   // The slots only matter when the card mounts.
@@ -64,7 +64,7 @@ function SongCard({
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return undefined
-    const scene = mountCardScene(canvas, song, {
+    const scene = mountCardScene(canvas, card, {
       mirror,
       reveal,
       ...startRef.current,
@@ -77,45 +77,45 @@ function SongCard({
       sceneRef.current = null
       scene.dispose()
     }
-  }, [song, mirror, reveal])
+  }, [card, mirror, reveal])
 
   return (
     <canvas
       ref={canvasRef}
-      data-slot="song-card"
+      data-slot="game-card"
       className={cn("game-canvas touch-none select-none", className)}
-      aria-label={`${song.title} by ${song.artist}, ${song.rarity} card`}
+      aria-label={`${card.name}, ${card.subtitle}, ${card.rarity} card`}
     />
   )
 }
 
 // Grid card rendered by the same 3D card pipeline, from one shared context;
 // its light follows the page scroll. Keyed so a new card starts unpainted.
-function SongCardThumb(props: SongCardThumbProps) {
-  return <LiveThumb key={props.song.id} {...props} />
+function GameCardThumb(props: GameCardThumbProps) {
+  return <LiveThumb key={props.card.id} {...props} />
 }
 
-type SongCardThumbProps = {
-  song: GameSong
+type GameCardThumbProps = {
+  card: GameCardData
   // Copies held; two or more show a count badge on the corner.
   copies?: number
-  // While a big SongCard stands in for it, e.g. mid-flight.
+  // While a big GameCard stands in for it, e.g. mid-flight.
   away?: boolean
 }
 
-function LiveThumb({ song, copies = 1, away = false }: SongCardThumbProps) {
+function LiveThumb({ card, copies = 1, away = false }: GameCardThumbProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [drawn, setDrawn] = useState(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return undefined
-    return mountCardThumb(canvas, song, () => setDrawn(true))
-  }, [song])
+    return mountCardThumb(canvas, card, () => setDrawn(true))
+  }, [card])
 
   return (
     <span
-      data-slot="song-card-thumb"
+      data-slot="game-card-thumb"
       data-away={away || undefined}
       className="group-hover/card:-translate-y-1 @container/thumb relative block aspect-5/7 w-full transition-transform group-active/card:scale-95 data-away:invisible"
     >
@@ -132,16 +132,16 @@ function LiveThumb({ song, copies = 1, away = false }: SongCardThumbProps) {
   )
 }
 
-// Where a thumb inside `element` shows its card, for a SongCard to fly from.
-function songCardThumbSlot(element: Element | null) {
-  const canvas = element?.querySelector("[data-slot=song-card-thumb] canvas")
+// Where a thumb inside `element` shows its card, for a GameCard to fly from.
+function gameCardThumbSlot(element: Element | null) {
+  const canvas = element?.querySelector("[data-slot=game-card-thumb] canvas")
   return canvas instanceof HTMLCanvasElement ? cardThumbSlot(canvas) : null
 }
 
 export {
-  SongCard,
-  SongCardThumb,
-  songCardThumbSlot,
-  type SongCardHandle,
-  type SongCardProps,
+  GameCard,
+  GameCardThumb,
+  gameCardThumbSlot,
+  type GameCardHandle,
+  type GameCardProps,
 }

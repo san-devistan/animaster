@@ -42,18 +42,23 @@ function paintCrimp(ctx: CanvasRenderingContext2D, y: number) {
   }
 }
 
-async function paintCovers(
+async function paintImages(
   ctx: CanvasRenderingContext2D,
-  covers: ReadonlyArray<string>
+  images: ReadonlyArray<string>
 ) {
-  const images = await Promise.all(covers.slice(0, 4).map(loadImage))
+  const loaded = await Promise.all(images.slice(0, 4).map(loadImage))
   ctx.save()
   ctx.beginPath()
   ctx.roundRect(26, 44, 180, 180, 16)
   ctx.clip()
-  images.forEach((image, index) => {
+  loaded.forEach((image, index) => {
+    const side = Math.min(image.naturalWidth, image.naturalHeight)
     ctx.drawImage(
       image,
+      (image.naturalWidth - side) / 2,
+      (image.naturalHeight - side) / 2,
+      side,
+      side,
       26 + (index % 2) * 90,
       44 + Math.floor(index / 2) * 90,
       90,
@@ -67,11 +72,11 @@ function paintTitle(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = "#121016"
   ctx.textAlign = "center"
   ctx.font = "900 28px 'Unbounded Variable'"
-  ctx.fillText("BILLION", PACK_W / 2, 262)
-  ctx.fillText("CLUB", PACK_W / 2, 291)
+  ctx.fillText("WILD", PACK_W / 2, 262)
+  ctx.fillText("PACK", PACK_W / 2, 291)
   ctx.font = "700 10px 'Space Mono'"
   ctx.letterSpacing = "0.8px"
-  ctx.fillText("5 SONG CARDS · VOL. 1", PACK_W / 2, 318)
+  ctx.fillText("5 ANIMAL CARDS · VOL. 1", PACK_W / 2, 318)
 }
 
 // Zigzag teeth on the cut seals (12px period, 6px deep, like the CSS mask).
@@ -133,18 +138,18 @@ export function packShape(part: "whole" | "body" | "strip" = "whole") {
   return canvas
 }
 
-export async function drawPackArt(covers: ReadonlyArray<string>) {
+export async function drawPackArt(images: ReadonlyArray<string>) {
   await Promise.all([
     document.fonts.load("900 28px 'Unbounded Variable'"),
     document.fonts.load("700 10px 'Space Mono'"),
   ])
   const front = blankFilm()
-  await paintCovers(front.ctx, covers)
+  await paintImages(front.ctx, images)
   paintTitle(front.ctx)
   const rear = blankFilm()
   rear.ctx.fillStyle = "#121016"
   rear.ctx.textAlign = "center"
   rear.ctx.font = "900 16px 'Unbounded Variable'"
-  rear.ctx.fillText("MUSI MASTER", PACK_W / 2, PACK_H / 2)
+  rear.ctx.fillText("ANIMASTER", PACK_W / 2, PACK_H / 2)
   return { front: front.canvas, rear: rear.canvas, shape: packShape() }
 }

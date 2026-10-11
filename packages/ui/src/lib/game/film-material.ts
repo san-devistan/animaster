@@ -13,7 +13,7 @@ export type Marquee = {
 }
 
 // A printed film over holo foil: the spec, its shaders and the material. The
-// pack and the song cards are both films; only the art differs.
+// pack and the cards are both films; only the art differs.
 export type FilmSpec = {
   width: number
   height: number

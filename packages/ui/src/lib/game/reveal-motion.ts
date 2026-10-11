@@ -91,7 +91,7 @@ function legendaryPose(at: Pose, t: number): Pose {
 export const celebrations = { epic: epicPose, legendary: legendaryPose }
 
 // Seconds after a card lands until its reveal cue (uisfx lengths) and
-// celebration have played out: when its song should be in. Legendary's cue
+// celebration have played out: when follow-up effects can start. Legendary's cue
 // comes 0.85s in and its light sweep ends at 2.1s.
 export const REVEAL_PLAYED: Record<Rarity, number> = {
   common: 0.4,
