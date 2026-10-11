@@ -1,0 +1,858 @@
+/* Game visuals that need gradients, 3D canvases or keyframes. */
+:root {
+  --foil: linear-gradient(
+    135deg,
+    #a238ff 4%,
+    #c470f8 15%,
+    #f5c4f2 30%,
+    #ffd64a 46%,
+    #d8d6d8 58%,
+    #a9b8ff 66%,
+    #a173fe 74%,
+    #a238ff 82%
+  );
+  --brand-mesh: linear-gradient(135deg, #a238ff, #c470f8, #7b2cff, #d9a0ff);
+  /* Each rarity's dominant card colour: the base of its foil fill below. */
+  --rarity-common-base: #5fd9b0;
+  --rarity-rare-base: #6f86ff;
+  --rarity-epic-base: #e05cf0;
+  --rarity-legendary-base: #ffb21e;
+  --rarity-common-fill: linear-gradient(
+    135deg,
+    var(--rarity-common-base) 0%,
+    #bff5e2 12%,
+    #fff 24%,
+    #d8f46a 30%,
+    #effab8 35%,
+    #bff5e2 46%,
+    var(--rarity-common-base) 60%
+  );
+  --rarity-rare-fill: linear-gradient(
+    135deg,
+    var(--rarity-rare-base) 0%,
+    #c3ccff 12%,
+    #f2f4ff 24%,
+    #4fd6ff 30%,
+    #bdefff 35%,
+    #c3ccff 46%,
+    var(--rarity-rare-base) 60%
+  );
+  --rarity-epic-fill: linear-gradient(
+    135deg,
+    var(--rarity-epic-base) 0%,
+    #f6c2fb 12%,
+    #fff2fd 24%,
+    #8a5cff 30%,
+    #d0bfff 35%,
+    #f6c2fb 46%,
+    var(--rarity-epic-base) 60%
+  );
+  --rarity-legendary-fill: linear-gradient(
+    135deg,
+    var(--rarity-legendary-base) 0%,
+    #ffe08a 12%,
+    #fffbe8 24%,
+    #ff8ab8 30%,
+    #ffd3e2 35%,
+    #ffe08a 46%,
+    var(--rarity-legendary-base) 60%
+  );
+}
+
+[data-rarity="common"] {
+  --rarity-color: var(--rarity-common);
+  --rarity-fill: var(--rarity-common-fill);
+}
+
+[data-rarity="rare"] {
+  --rarity-color: var(--rarity-rare);
+  --rarity-fill: var(--rarity-rare-fill);
+}
+
+[data-rarity="epic"] {
+  --rarity-color: var(--rarity-epic);
+  --rarity-fill: var(--rarity-epic-fill);
+}
+
+[data-rarity="legendary"] {
+  --rarity-color: var(--rarity-legendary);
+  --rarity-fill: var(--rarity-legendary-fill);
+}
+
+.game-studio {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--ink);
+}
+
+.game-fx,
+.game-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.game-fx {
+  z-index: -1;
+}
+
+.game-card-back {
+  aspect-ratio: 5 / 7;
+  perspective: 900px;
+}
+
+/* The snapshot keeps the 3D stage margins; crop them to the card. */
+.game-card-snapshot {
+  left: calc(-20 / 240 * 100%);
+  top: calc(-24 / 336 * 100%);
+  width: calc(280 / 240 * 100%);
+  height: calc(400 / 336 * 100%);
+}
+
+.game-card-back-body {
+  position: relative;
+  height: 100%;
+  isolation: isolate;
+  border-radius: 24px;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.6) inset,
+    0 18px 36px -12px rgb(56 36 110 / 0.45);
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.game-card-back[data-tilting] .game-card-back-body {
+  transition-duration: 0.12s;
+}
+
+.game-card-back-face {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+  border: 3px solid var(--ink);
+  border-radius: inherit;
+  background: var(--brand-mesh);
+  color: var(--brand-foreground);
+}
+
+.game-disc {
+  width: 40%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      var(--paper) 0 3%,
+      var(--brand) 3.5% 15%,
+      var(--ink) 15.5% 19%,
+      transparent 19.5%
+    ),
+    conic-gradient(
+      from 40deg,
+      transparent,
+      rgb(255 255 255 / 0.14) 8%,
+      transparent 18%,
+      transparent 50%,
+      rgb(255 255 255 / 0.14) 58%,
+      transparent 68%
+    ),
+    repeating-radial-gradient(circle, var(--ink) 0 1.5px, #26222d 2px 2.5px);
+  box-shadow: 0 6px 16px rgb(18 16 22 / 0.35);
+}
+
+.game-glare {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.45;
+  background: radial-gradient(
+    circle at var(--gx, 30%) var(--gy, 20%),
+    rgb(255 255 255 / 0.75),
+    transparent 48%
+  );
+  mix-blend-mode: overlay;
+  transition: opacity 0.4s;
+}
+
+.game-card-back[data-tilting] .game-glare {
+  opacity: 0.9;
+}
+
+.game-cut-guide {
+  top: var(--cut-top);
+  left: calc(50% - var(--cut-width) / 2);
+  width: var(--cut-width);
+  translate: 0 -50%;
+}
+
+.game-pack-motes {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* The opening's canvas fades in once its pack is drawn, rather than the pack
+   popping in (opening-scene sets data-drawn). */
+[data-slot="pack-opening"] > .game-canvas {
+  transition: opacity 0.35s ease-out;
+}
+
+[data-slot="pack-opening"] > .game-canvas:not([data-drawn]) {
+  opacity: 0;
+}
+
+.game-pack-motes > i {
+  position: absolute;
+  top: var(--mote-y);
+  left: var(--mote-x);
+  width: var(--mote-size);
+  height: var(--mote-size);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 0 8px 2px rgb(255 255 255 / 0.85),
+    0 0 20px 5px rgb(174 210 255 / 0.45);
+  animation: game-mote 4s var(--mote-delay) ease-in-out infinite;
+}
+
+/* Katana slice once the pack is cut through, along the finger's own stroke
+   (cut-slash.ts): a blade of light whips along it past both edges of the
+   screen, leaving a hairline that flares and fades, with a glint where the
+   finger let go. 0.5s in all. */
+.game-cut-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.game-cut-flash > svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The blade: a short white-hot dash racing along the stroke. */
+.game-cut-blade {
+  stroke: #fff;
+  stroke-width: 5;
+  stroke-dasharray: 0.3 1.3;
+  stroke-dashoffset: 0.3;
+  filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 14px rgb(255 54 194 / 0.7));
+  animation: game-katana-blade 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+/* What it leaves: a hairline cut over a holo band, drawn on behind the blade,
+   flaring then thinning out. */
+.game-cut-line,
+.game-cut-glow {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 16px rgb(255 54 194 / 0.6));
+  animation: game-katana-cut 0.5s ease-out forwards;
+}
+
+.game-cut-line {
+  --cut-width: 3px;
+  stroke: #fff;
+}
+
+.game-cut-glow {
+  --cut-width: 12px;
+}
+
+.game-cut-flash stop {
+  stop-color: rgb(255 243 110 / 0.6);
+
+  &:first-child {
+    stop-color: rgb(255 243 110 / 0);
+  }
+
+  &:nth-child(3) {
+    stop-color: rgb(255 54 194 / 0.6);
+  }
+
+  &:nth-child(4) {
+    stop-color: rgb(65 154 255 / 0.6);
+  }
+
+  &:last-child {
+    stop-color: rgb(65 154 255 / 0);
+  }
+}
+
+/* The glint where the finger let go, a four-point star turned to the slash. */
+.game-cut-flash > i {
+  position: absolute;
+  top: var(--glint-y);
+  left: var(--glint-x);
+  width: 2.5rem;
+  height: 2.5rem;
+  translate: -50% -50%;
+  rotate: var(--glint-angle);
+  background:
+    radial-gradient(closest-side, #fff, rgb(255 255 255 / 0) 70%),
+    linear-gradient(0deg, transparent 46%, #fff 49% 51%, transparent 54%)
+      center / 0.5rem 4rem no-repeat;
+  filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 16px rgb(255 54 194 / 0.6));
+  opacity: 0;
+  animation: game-katana-glint 0.5s ease-out forwards;
+}
+
+/* Chunky 3D surfaces: white bodies on an ink ledge, with purple gloss chips. */
+:root {
+  --chunky-fill: linear-gradient(
+    #fff,
+    color-mix(in oklab, #fff 88%, var(--lavender))
+  );
+  --chunky-bevel:
+    0 2px 0 rgb(255 255 255 / 0.9) inset,
+    0 -3px 0 color-mix(in oklab, var(--lavender) 55%, transparent) inset;
+  --chunky-drop: 0 12px 18px -6px rgb(56 36 110 / 0.45);
+  --chunky-chip: 0 1px 0 rgb(255 255 255 / 0.45) inset;
+}
+
+[data-slot="game-pill"] {
+  border: 2.5px solid var(--ink);
+  background: var(--chunky-fill);
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: var(--chunky-bevel);
+}
+
+[data-slot="game-tab-bar"] {
+  border: 2.5px solid var(--ink);
+  background: var(--chunky-fill);
+  box-shadow:
+    var(--chunky-bevel),
+    0 6px 0 var(--ink),
+    var(--chunky-drop);
+}
+
+[data-slot="game-tab"] {
+  color: color-mix(in oklab, var(--ink) 55%, transparent);
+
+  &:hover {
+    color: var(--ink);
+  }
+
+  &[aria-current="page"] {
+    color: var(--brand-foreground);
+  }
+
+  &[aria-current="page"]::before {
+    border: 2px solid var(--ink);
+    background: var(--brand-mesh);
+    box-shadow: var(--chunky-chip);
+  }
+
+  & svg {
+    stroke-width: 2.5;
+  }
+}
+
+/* Chunky press-in select with a floating menu, and buttons to match. */
+[data-slot="select-trigger"][data-variant="game"],
+[data-slot="button"][data-variant="game"] {
+  height: 3rem;
+  gap: 0.5rem;
+  padding-inline: 0.75rem 1rem;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--chunky-fill);
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow:
+    var(--chunky-bevel),
+    0 5px 0 var(--ink),
+    var(--chunky-drop);
+  translate: 0 0;
+  transition:
+    translate 0.12s ease-out,
+    box-shadow 0.12s ease-out;
+
+  &:hover {
+    translate: 0 -1px;
+    box-shadow:
+      0 2px 0 rgb(255 255 255 / 0.9) inset,
+      0 -3px 0 color-mix(in oklab, var(--lavender) 55%, transparent) inset,
+      0 6px 0 var(--ink),
+      0 14px 20px -6px rgb(56 36 110 / 0.5);
+  }
+
+  &:active,
+  &[data-popup-open] {
+    translate: 0 4px;
+    box-shadow:
+      0 2px 0 rgb(255 255 255 / 0.9) inset,
+      0 -2px 0 color-mix(in oklab, var(--lavender) 55%, transparent) inset,
+      0 1px 0 var(--ink),
+      0 4px 8px -4px rgb(56 36 110 / 0.4);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 3px;
+  }
+}
+
+[data-slot="select-trigger"][data-variant="game"],
+[data-slot="button"][data-variant="game"] {
+  & > svg:first-child {
+    box-sizing: content-box;
+    padding: 0.375rem;
+    border-radius: 999px;
+    background: var(--brand-mesh);
+    color: var(--brand-foreground);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.45) inset,
+      0 0 0 2px var(--ink);
+  }
+
+  & [data-slot="select-icon"] {
+    color: var(--ink);
+    stroke-width: 3;
+    transition: rotate 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  &[data-popup-open] [data-slot="select-icon"] {
+    rotate: 180deg;
+  }
+}
+
+[data-slot="button"][data-variant="game"] svg {
+  stroke-width: 3;
+}
+
+[data-slot="select-content"][data-variant="game"] {
+  padding: 0.375rem;
+  border: 2.5px solid var(--ink);
+  border-radius: 1.5rem;
+  background: linear-gradient(
+    #fff,
+    color-mix(in oklab, #fff 90%, var(--lavender))
+  );
+  color: var(--ink);
+  box-shadow:
+    0 2px 0 rgb(255 255 255 / 0.9) inset,
+    0 6px 0 var(--ink),
+    0 22px 36px -10px rgb(56 36 110 / 0.55);
+  /* Leave room for the ink ledge so the bottom edge is never clipped. */
+  margin-bottom: 0.5rem;
+
+  &[data-open] {
+    animation: game-select-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  &[data-closed] {
+    animation: game-select-unpop 0.24s cubic-bezier(0.36, 0, 0.66, -0.56)
+      forwards;
+  }
+
+  & [data-slot="select-item"] {
+    min-height: 2.75rem;
+    padding-inline: 0.75rem 2.25rem;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    font-weight: 600;
+    transition:
+      background-color 0.12s,
+      translate 0.12s;
+  }
+
+  & [data-slot="select-item"][data-highlighted] {
+    background: color-mix(in oklab, var(--lavender) 55%, #fff);
+    color: var(--ink);
+    translate: 2px 0;
+  }
+
+  & [data-slot="select-item"][data-selected] {
+    border-color: var(--ink);
+    background: var(--brand-mesh);
+    color: var(--brand-foreground);
+    box-shadow: var(--chunky-chip);
+  }
+
+  & [data-slot="select-item"][data-selected] * {
+    color: inherit;
+  }
+
+  & [data-slot="select-item"] + [data-slot="select-item"] {
+    margin-top: 0.25rem;
+  }
+}
+
+@keyframes game-select-pop {
+  from {
+    opacity: 0;
+    scale: 0.85;
+    translate: 0 -8px;
+  }
+  60% {
+    opacity: 1;
+  }
+}
+
+@keyframes game-select-unpop {
+  40% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 0.85;
+    translate: 0 -8px;
+  }
+}
+
+.game-celebration {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.game-celebration > i {
+  position: absolute;
+  top: calc(50% + var(--celebration-y, 0px));
+  left: 50%;
+}
+
+.game-celebration-light {
+  width: 900px;
+  height: 900px;
+  margin: -450px 0 0 -450px;
+  opacity: 0;
+}
+
+.game-celebration[data-rarity="epic"] .game-celebration-light {
+  background: radial-gradient(
+    circle,
+    #fff 0 5%,
+    #e05cf0 18%,
+    rgb(138 92 255 / 0.6) 30%,
+    transparent 46%
+  );
+  animation: game-celebrate-pop var(--celebration) ease-out both;
+}
+
+.game-celebration[data-rarity="legendary"] .game-celebration-light {
+  background:
+    radial-gradient(
+      circle,
+      #fff 0 6%,
+      var(--rarity-legendary) 18%,
+      transparent 40%
+    ),
+    repeating-conic-gradient(
+      rgb(255 214 74 / 0.75) 0 5deg,
+      transparent 5deg 18deg
+    );
+  mask: radial-gradient(circle, #000 12%, transparent 50%);
+  animation:
+    game-celebrate-charge var(--celebration) ease-in both,
+    game-spin 9s linear infinite;
+}
+
+.game-celebration-ring {
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border: 6px solid #d26af5;
+  border-radius: 50%;
+  opacity: 0;
+  animation: game-celebrate-ring 0.9s ease-out forwards;
+}
+
+.game-celebration-ring + .game-celebration-ring {
+  animation-delay: 0.18s;
+}
+
+.game-celebration[data-rarity="legendary"] .game-celebration-ring {
+  border-color: #ffe08a;
+  animation-delay: 0.85s;
+}
+
+.game-celebration[data-rarity="legendary"]
+  .game-celebration-ring
+  + .game-celebration-ring {
+  animation-delay: 1s;
+}
+
+.game-celebration-spark {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 2px;
+  rotate: 45deg;
+  background: #e05cf0;
+  box-shadow:
+    0 0 10px #fff,
+    0 0 16px #b04ce0;
+  opacity: 0;
+  animation: game-celebrate-spark 0.9s var(--spark-delay) ease-out both;
+}
+
+.game-celebration[data-rarity="legendary"] .game-celebration-spark {
+  background: #ffe08a;
+  animation: game-celebrate-spark 1.3s calc(0.85s + var(--spark-delay))
+    cubic-bezier(0.2, 0.8, 0.4, 1) both;
+}
+
+@keyframes game-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+@keyframes game-mote {
+  0%,
+  100% {
+    opacity: 0.15;
+    translate: 0 0.5rem;
+    scale: 0.5;
+  }
+  45% {
+    opacity: 1;
+    translate: 0.5rem -0.5rem;
+    scale: 1;
+  }
+}
+
+@keyframes game-katana-blade {
+  0% {
+    stroke-dashoffset: 0.3;
+    stroke-width: 5;
+    opacity: 1;
+  }
+  45% {
+    opacity: 1;
+  }
+  to {
+    stroke-dashoffset: -1;
+    stroke-width: 2;
+    opacity: 0;
+  }
+}
+
+/* Collection cards making room for a new one (game-slides): a quick slide,
+   so the next card can drop in right after. */
+::view-transition-group(*) {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+@keyframes game-drop {
+  0% {
+    opacity: 0;
+    translate: 0 -120vh;
+    rotate: -8deg;
+  }
+  12% {
+    opacity: 1;
+  }
+  70% {
+    translate: 0 4%;
+    rotate: 1deg;
+    scale: 1.02 0.97;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+@keyframes game-drop-flash {
+  0%,
+  65% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* NEW badge pressed onto a card: eases up from smaller and turned to its
+   resting tilt, with a hair of overshoot from the timing curve. */
+@keyframes game-badge-press {
+  from {
+    opacity: 0;
+    scale: 0.65;
+    rotate: -6deg;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    rotate: 8deg;
+  }
+}
+
+/* The badge foil: glints and rainbow bands sliding across, like the pack
+   lining's. */
+@keyframes game-badge-shine {
+  0% {
+    background-position:
+      0 0,
+      0 0,
+      0 0,
+      0 0;
+  }
+  100% {
+    background-position:
+      -300% 0,
+      100% 0,
+      0 0,
+      0 0;
+  }
+}
+
+/* The count badge's sheen: rests off to one side, crosses now and then. */
+@keyframes game-count-sheen {
+  0%,
+  60% {
+    background-position:
+      120% 0,
+      0 0,
+      0 0;
+  }
+  100% {
+    background-position:
+      -20% 0,
+      0 0,
+      0 0;
+  }
+}
+
+@keyframes game-katana-cut {
+  0%,
+  12% {
+    opacity: 0;
+    stroke-dashoffset: 1;
+    stroke-width: var(--cut-width);
+  }
+  30% {
+    opacity: 1;
+    stroke-dashoffset: 0;
+    stroke-width: calc(var(--cut-width) * 1.6);
+  }
+  55% {
+    opacity: 0.9;
+    stroke-width: calc(var(--cut-width) * 1.1);
+  }
+  to {
+    opacity: 0;
+    stroke-dashoffset: 0;
+    stroke-width: calc(var(--cut-width) * 0.2);
+  }
+}
+
+@keyframes game-katana-glint {
+  0%,
+  25% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  35% {
+    opacity: 1;
+    scale: 1.2;
+  }
+  to {
+    opacity: 0;
+    scale: 0.8;
+  }
+}
+
+@keyframes game-celebrate-pop {
+  10% {
+    opacity: 1;
+    scale: 0.4;
+  }
+  to {
+    opacity: 0;
+    scale: 1.3;
+  }
+}
+
+@keyframes game-celebrate-charge {
+  0% {
+    opacity: 0;
+    scale: 0.3;
+  }
+  42% {
+    opacity: 0.5;
+    scale: 0.45;
+  }
+  52% {
+    opacity: 1;
+    scale: 1.1;
+    filter: brightness(1.8);
+  }
+  to {
+    opacity: 0.55;
+    scale: 1;
+  }
+}
+
+@keyframes game-celebrate-ring {
+  from {
+    opacity: 1;
+    scale: 0.6;
+  }
+  to {
+    opacity: 0;
+    scale: 4.5;
+    border-width: 1px;
+  }
+}
+
+@keyframes game-celebrate-spark {
+  15% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    translate: var(--spark-x) var(--spark-y);
+    scale: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-card-back-body,
+  .game-celebration *,
+  .game-pack-motes > i,
+  .game-cut-flash,
+  .game-cut-flash *,
+  [data-slot="pack-opening"] > .game-canvas,
+  [data-slot="select-content"][data-variant="game"] {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .game-cut-flash {
+    opacity: 0;
+  }
+}

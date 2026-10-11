@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@import "uniwind";
+@import "panelui-native/theme.css";
+@import "./tokens.css";
+
+@source "./node_modules/panelui-native/src";
+
+@theme {
+  --font-normal: Oxanium_400Regular;
+  --font-medium: Oxanium_500Medium;
+  --font-semibold: Oxanium_600SemiBold;
+  --font-bold: Oxanium_700Bold;
+  --font-extrabold: Oxanium_800ExtraBold;
+  --font-heading: JetBrainsMono_400Regular;
+  --font-mono: JetBrainsMono_400Regular;
+}

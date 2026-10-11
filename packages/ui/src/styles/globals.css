@@ -1,0 +1,384 @@
+@theme inline {
+  --font-heading: "Unbounded Variable", sans-serif;
+  --font-sans: "Space Grotesk Variable", sans-serif;
+  --font-mono: "Space Mono", monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-rarity-common: var(--rarity-common);
+  --color-rarity-rare: var(--rarity-rare);
+  --color-rarity-epic: var(--rarity-epic);
+  --color-rarity-legendary: var(--rarity-legendary);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-ink: var(--brand-ink);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-paper: var(--paper);
+  --color-lavender: var(--lavender);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(0.96 0.009 88);
+  --foreground: oklch(0.18 0.015 300);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.015 300);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.015 300);
+  --primary: oklch(0.18 0.015 300);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(1 0 0);
+  --secondary-foreground: oklch(0.18 0.015 300);
+  --muted: oklch(0.92 0.018 300);
+  --muted-foreground: oklch(0.47 0.015 300);
+  --accent: oklch(0.86 0.075 300);
+  --accent-foreground: oklch(0.18 0.015 300);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.18 0.015 300 / 12%);
+  --input: oklch(0.18 0.015 300 / 15%);
+  --ring: oklch(0.6 0.25 304);
+  --chart-1: oklch(0.6 0.25 304);
+  --chart-2: oklch(0.82 0.1 175);
+  --chart-3: oklch(0.78 0.1 275);
+  --chart-4: oklch(0.82 0.1 330);
+  --chart-5: oklch(0.88 0.16 90);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.96 0.009 88);
+  --sidebar-foreground: oklch(0.18 0.015 300);
+  --sidebar-primary: oklch(0.6 0.25 304);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.92 0.018 300);
+  --sidebar-accent-foreground: oklch(0.18 0.015 300);
+  --sidebar-border: oklch(0.18 0.015 300 / 12%);
+  --sidebar-ring: oklch(0.6 0.25 304);
+  --rarity-common: oklch(0.92 0.06 170);
+  --rarity-rare: oklch(0.8 0.1 275);
+  --rarity-epic: oklch(0.83 0.11 330);
+  --rarity-legendary: oklch(0.89 0.16 90);
+  --brand: oklch(0.6 0.25 304);
+  --brand-foreground: oklch(1 0 0);
+  --brand-ink: oklch(0.54 0.26 302);
+  --ink: oklch(0.18 0.015 300);
+  --ink-foreground: oklch(1 0 0);
+  --paper: oklch(0.96 0.009 88);
+  --lavender: oklch(0.85 0.075 300);
+}
+
+.dark {
+  --background: oklch(0.17 0.016 300);
+  --foreground: oklch(0.96 0.009 88);
+  --card: oklch(0.23 0.018 300);
+  --card-foreground: oklch(0.96 0.009 88);
+  --popover: oklch(0.23 0.018 300);
+  --popover-foreground: oklch(0.96 0.009 88);
+  --primary: oklch(0.96 0.009 88);
+  --primary-foreground: oklch(0.18 0.015 300);
+  --secondary: oklch(0.27 0.02 300);
+  --secondary-foreground: oklch(0.96 0.009 88);
+  --muted: oklch(0.29 0.02 300);
+  --muted-foreground: oklch(0.72 0.015 300);
+  --accent: oklch(0.36 0.08 300);
+  --accent-foreground: oklch(0.96 0.009 88);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.68 0.22 304);
+  --chart-1: oklch(0.68 0.22 304);
+  --chart-2: oklch(0.82 0.1 175);
+  --chart-3: oklch(0.78 0.1 275);
+  --chart-4: oklch(0.82 0.1 330);
+  --chart-5: oklch(0.88 0.16 90);
+  --sidebar: oklch(0.2 0.018 300);
+  --sidebar-foreground: oklch(0.96 0.009 88);
+  --sidebar-primary: oklch(0.68 0.22 304);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.29 0.02 300);
+  --sidebar-accent-foreground: oklch(0.96 0.009 88);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.68 0.22 304);
+  --rarity-common: oklch(0.86 0.08 170);
+  --rarity-rare: oklch(0.76 0.12 275);
+  --rarity-epic: oklch(0.78 0.14 330);
+  --rarity-legendary: oklch(0.86 0.16 90);
+  --brand: oklch(0.68 0.22 304);
+  --brand-foreground: oklch(1 0 0);
+  --brand-ink: oklch(0.78 0.16 304);
+  --ink: oklch(0.12 0.012 300);
+  --ink-foreground: oklch(1 0 0);
+  --paper: oklch(0.96 0.009 88);
+  --lavender: oklch(0.85 0.075 300);
+}
+
+/* Game utilities read by Tailwind and @shadcn/lint. */
+@utility game-fill {
+  background: var(--rarity-fill, var(--foil));
+}
+
+@utility game-fill-pressed {
+  background: var(--rarity-fill, var(--ink));
+}
+
+@utility game-brand-fill {
+  background: var(--brand-mesh);
+}
+
+/* All four rarities at once, as a 2x2 grid of their colours. */
+@utility game-rarity-grid {
+  background: conic-gradient(
+    var(--rarity-rare-base) 0 25%,
+    var(--rarity-epic-base) 0 50%,
+    var(--rarity-legendary-base) 0 75%,
+    var(--rarity-common-base) 0
+  );
+}
+
+@utility game-rarity-dot {
+  &::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--rarity-color);
+    box-shadow: 0 0 0 1px rgb(18 16 22 / 0.25);
+  }
+}
+
+@utility game-safe-top {
+  /* iOS Safari tabs already start the page below the status bar and report a 0 inset. */
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+
+@utility game-safe-bottom {
+  bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@utility game-stage-height {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: 40rem;
+  aspect-ratio: 345 / 500;
+}
+
+@utility game-opening-size {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: 53rem;
+}
+
+@utility game-no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Content scrolling under a header dissolves into the backdrop instead of cutting off. */
+@utility game-scroll-fade {
+  mask-image: linear-gradient(to bottom, transparent, #000 1.5rem);
+}
+
+@utility game-order {
+  order: var(--game-order);
+}
+
+/* A grid item that slides to its new place when the grid changes inside a
+   view transition; --game-card names it, unique per item. */
+@utility game-slides {
+  view-transition-name: var(--game-card);
+}
+
+/* A card just pulled from a pack drops into the collection from above, lands
+   with a little bounce and a flash, after the ones before it (--drop-delay).
+   Keyframes live in game.css. */
+@utility game-drop {
+  position: relative;
+  animation: game-drop 0.6s var(--drop-delay, 0s) cubic-bezier(0.3, 0, 0.3, 1)
+    both;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -6%;
+    z-index: 1;
+    border-radius: 1.5rem;
+    pointer-events: none;
+    background: radial-gradient(
+      closest-side,
+      rgb(255 255 255 / 0.9),
+      transparent
+    );
+    opacity: 0;
+    animation: game-drop-flash 0.6s var(--drop-delay, 0s) ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    &::after {
+      animation: none;
+    }
+  }
+}
+
+/* NEW sticker on a collection card, matching the pack opening's: a tilted pill
+   of the pack lining's silver foil (brushed, brighter at its edges, rainbow
+   bands and glints sliding across) over the card's top-right corner, lettered
+   in ink. On a card that just dropped in, it's pressed on once the card has
+   landed (--drop-delay + the 0.6s drop). Sized off the card (an @container);
+   keyframes in game.css. */
+@utility game-new-badge {
+  position: absolute;
+  top: 2%;
+  right: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 25%;
+  aspect-ratio: 60 / 26;
+  overflow: hidden;
+  border: 1cqw solid var(--ink);
+  border-radius: 999px;
+  background:
+    /* Glints. */
+    linear-gradient(
+        100deg,
+        transparent 44%,
+        rgb(255 255 255 / 0.7) 50%,
+        transparent 56%
+      )
+      0 0 / 60% 100%,
+    /* Rainbow bands sliding across. */
+      linear-gradient(
+        110deg,
+        rgb(255 120 200 / 0.6),
+        rgb(120 220 255 / 0.6),
+        rgb(255 236 120 / 0.6),
+        rgb(190 140 255 / 0.6),
+        rgb(255 120 200 / 0.6)
+      )
+      0 0 / 300% 100%,
+    /* Brushed silver, brighter towards the top and bottom edges. */
+      repeating-linear-gradient(
+        90deg,
+        rgb(255 255 255 / 0.08) 0 1px,
+        transparent 1px 3px
+      ),
+    linear-gradient(#f7f7ff, #b3b8cc 50%, #f7f7ff);
+  background-blend-mode: screen, multiply, normal, normal;
+  box-shadow: 0 1.2cqw 2.5cqw rgb(18 16 22 / 0.35);
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: 5cqw;
+  font-weight: 900;
+  line-height: 1;
+  rotate: 8deg;
+  pointer-events: none;
+  animation: game-badge-shine 6s linear infinite;
+
+  .game-drop & {
+    animation:
+      game-badge-press 0.7s calc(var(--drop-delay, 0s) + 0.75s)
+        cubic-bezier(0.34, 1.4, 0.64, 1) both,
+      game-badge-shine 6s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    .game-drop & {
+      animation: none;
+    }
+  }
+}
+
+/* How many of a card you hold: the NEW sticker's brushed silver, quieter. No
+   rainbow or tilt, just a soft sheen across, an ink rim and ink lettering.
+   Sized by font-size (1em is the label), so it fits a card corner or the
+   showcase. */
+@utility game-count-badge {
+  display: inline-grid;
+  place-items: center;
+  height: 2em;
+  padding-inline: 0.7em;
+  border: 0.16em solid var(--ink);
+  border-radius: 999px;
+  background:
+    /* A soft sheen drifting across. */
+    linear-gradient(
+        100deg,
+        transparent 40%,
+        rgb(255 255 255 / 0.55) 50%,
+        transparent 60%
+      )
+      0 0 / 250% 100%,
+    /* Brushed silver, brighter towards the top and bottom edges. */
+      repeating-linear-gradient(
+        90deg,
+        rgb(255 255 255 / 0.08) 0 1px,
+        transparent 1px 3px
+      ),
+    linear-gradient(#f7f7ff, #c3c7d6 50%, #f7f7ff);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.9) inset,
+    0 0.2em 0.45em rgb(18 16 22 / 0.3);
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  animation: game-count-sheen 7s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+/* App backdrop: lavender settling into off-white, like the lab's studio. */
+@utility game-backdrop {
+  background:
+    radial-gradient(120% 70% at 50% 82%, #fff 0, #ece4ff 35%, transparent 75%),
+    linear-gradient(var(--lavender), var(--paper));
+  background-attachment: fixed;
+}
+
+/* Canvas under browser chrome (e.g. Safari's bottom bar): the backdrop's bottom edge. */
+@utility game-backdrop-floor {
+  background-color: color-mix(in oklab, #ece4ff 65%, var(--paper));
+}

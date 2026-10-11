@@ -1,0 +1,183 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "react",
+    "jsx-a11y",
+    "import",
+    "promise",
+    "node",
+    "oxc"
+  ],
+  "jsPlugins": ["@shadcn/lint"],
+  "options": {
+    "typeAware": true,
+    "typeCheck": false,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "node": true
+  },
+  "settings": {
+    "react": {
+      "version": "19.2.0"
+    }
+  },
+  "rules": {
+    "complexity": ["error", { "max": 15 }],
+    "eqeqeq": ["error", "smart"],
+    "max-depth": ["error", 4],
+    "max-lines": [
+      "error",
+      { "max": 400, "skipBlankLines": true, "skipComments": true }
+    ],
+    "max-lines-per-function": [
+      "error",
+      { "max": 200, "skipBlankLines": true, "skipComments": true }
+    ],
+    "max-params": ["error", 4],
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "no-duplicate-imports": "error",
+    "no-empty": "error",
+    "no-nested-ternary": "error",
+    "no-param-reassign": "error",
+    "no-underscore-dangle": ["error", { "allow": ["_creationTime", "_id"] }],
+    "prefer-const": "error",
+    "import/no-cycle": ["error", { "maxDepth": 3 }],
+    "import/no-relative-parent-imports": "error",
+    "unicorn/filename-case": ["error", { "case": "kebabCase" }],
+    "unicorn/prefer-node-protocol": "error",
+    "typescript/consistent-type-assertions": [
+      "error",
+      { "assertionStyle": "as", "objectLiteralTypeAssertions": "never" }
+    ],
+    "typescript/consistent-type-imports": [
+      "error",
+      { "prefer": "type-imports" }
+    ],
+    "typescript/no-deprecated": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/only-throw-error": "error",
+    "typescript/restrict-template-expressions": "error",
+    "typescript/switch-exhaustiveness-check": "error",
+    "react/button-has-type": "error",
+    "react/exhaustive-deps": "error",
+    "react/jsx-key": "error",
+    "react/jsx-no-target-blank": "error",
+    "react/no-array-index-key": "error",
+    "react/no-danger": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/rules-of-hooks": "error",
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/anchor-has-content": "error",
+    "jsx-a11y/aria-props": "error",
+    "jsx-a11y/aria-role": "error",
+    "jsx-a11y/click-events-have-key-events": "error",
+    "jsx-a11y/interactive-supports-focus": "error",
+    "jsx-a11y/label-has-associated-control": "error",
+    "jsx-a11y/no-autofocus": "error",
+    "shadcn/no-arbitrary-values": "error",
+    "shadcn/no-inline-styles": "error",
+    "shadcn/no-raw-colors": "error",
+    "shadcn/no-unknown-classes": "error",
+    "shadcn/require-static-classes": "error"
+  },
+  "overrides": [
+    {
+      "files": ["apps/web/**", "packages/ui/**"],
+      "rules": {
+        "shadcn/no-restyle": ["error", { "allow": ["layout"] }]
+      }
+    },
+    {
+      "files": ["packages/ui/src/components/**"],
+      "rules": {
+        "complexity": "off",
+        "eqeqeq": "off",
+        "max-lines": "off",
+        "no-nested-ternary": "off",
+        "no-param-reassign": "off",
+        "no-shadow": "off",
+        "no-underscore-dangle": "off",
+        "jsx-a11y/click-events-have-key-events": "off",
+        "jsx-a11y/label-has-associated-control": "off",
+        "jsx-a11y/no-noninteractive-element-interactions": "off",
+        "jsx-a11y/prefer-tag-over-role": "off",
+        "react/button-has-type": "off",
+        "react/no-array-index-key": "off",
+        "react/no-danger": "off",
+        "react/no-unstable-nested-components": "off",
+        "react/set-state-in-effect": "off",
+        "shadcn/no-arbitrary-values": "off",
+        "shadcn/no-inline-styles": "off",
+        "shadcn/no-restyle": "off",
+        "shadcn/no-unknown-classes": "off",
+        "shadcn/require-static-classes": "off",
+        "typescript/consistent-return": "off",
+        "typescript/no-deprecated": "off",
+        "typescript/no-unsafe-argument": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-call": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "typescript/restrict-template-expressions": "off"
+      }
+    },
+    {
+      "files": ["scripts/**", "**/*.config.{js,cjs,mjs,ts}"],
+      "rules": {
+        "no-console": "off",
+        "typescript/no-unsafe-argument": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-call": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/no-unsafe-return": "off"
+      }
+    },
+    {
+      "files": ["packages/ui/src/lib/game/**"],
+      "rules": {
+        "complexity": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    ".agents/**",
+    "**/.agents/**",
+    ".codex/**",
+    ".expo/**",
+    "**/.expo/**",
+    ".nitro/**",
+    ".output/**",
+    "**/.output/**",
+    ".pnpm-store/**",
+    ".tanstack/**",
+    ".turbo/**",
+    ".vinxi/**",
+    "coverage/**",
+    "dist/**",
+    "**/dist/**",
+    "node_modules/**",
+    "apps/mobile/uniwind-types.d.ts",
+    "apps/web/src/routeTree.gen.*",
+    "packages/backend/convex/_generated/**"
+  ]
+}

@@ -1,0 +1,1693 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Musi Master · Design canvas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Unbounded:wght@800;900&display=swap"
+    />
+    <style>
+      :root {
+        --ink: #121016;
+        --paper: #f5f2ea;
+        --lavender: #d9c8ff;
+        --common: #bdf2e1;
+        --rare: #a9b8ff;
+        --epic: #f5b0ee;
+        --legendary: #ffd64a;
+        --muted: #8a8794;
+        --chip: #2f2d32;
+        --display: "Unbounded", sans-serif;
+        --ui: "Space Grotesk", sans-serif;
+        --mono: "Space Mono", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+        color: var(--ink);
+        background: #e6e4df;
+        font-family: var(--ui);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      h1,
+      h2,
+      h3,
+      p,
+      ul {
+        margin: 0;
+        padding: 0;
+      }
+
+      button,
+      select {
+        font: inherit;
+        color: inherit;
+      }
+
+      img {
+        display: block;
+      }
+
+      .fx {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Canvas */
+      .viewport {
+        position: fixed;
+        inset: 0;
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
+        background-image: radial-gradient(#cfccc4 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+
+      .viewport.is-panning {
+        cursor: grabbing;
+      }
+
+      .world {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1600px;
+        height: 1760px;
+        transform-origin: 0 0;
+      }
+
+      .frame {
+        position: absolute;
+      }
+
+      .frame::before {
+        content: attr(data-name);
+        position: absolute;
+        bottom: calc(100% + 10px);
+        left: 0;
+        color: #77737f;
+        font: 500 14px var(--ui);
+        white-space: nowrap;
+      }
+
+      .hud {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 6px 6px 16px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 13px;
+      }
+
+      .hud strong {
+        margin-right: 6px;
+        font-weight: 600;
+      }
+
+      .hud output {
+        min-width: 40px;
+        color: #b1b0b2;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .hud button,
+      .hud select {
+        padding: 6px 12px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--chip);
+        cursor: pointer;
+      }
+
+      .hud label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 6px;
+        color: #b1b0b2;
+      }
+
+      .hud select {
+        color: #fff;
+      }
+
+      .hint {
+        position: fixed;
+        bottom: 16px;
+        left: 16px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      /* Tilt + glare (packs and cards) */
+      .tilt {
+        perspective: 900px;
+      }
+
+      .tilt-body {
+        position: relative;
+        height: 100%;
+        isolation: isolate;
+        transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+        transform-style: preserve-3d;
+        transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      .tilt.is-tilting .tilt-body {
+        transition-duration: 0.12s;
+      }
+
+      .glare {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: 0.45;
+        background:
+          radial-gradient(
+            circle at var(--gx, 30%) var(--gy, 20%),
+            rgb(255 255 255 / 0.75),
+            transparent 48%
+          ),
+          linear-gradient(
+              115deg,
+              transparent 32%,
+              rgb(255 255 255 / 0.5) 45%,
+              transparent 58%
+            )
+            var(--gx, 30%) 0 / 300% 100%;
+        mix-blend-mode: overlay;
+        transition: opacity 0.4s;
+      }
+
+      .tilt.is-tilting .glare {
+        opacity: 0.9;
+      }
+
+      /* Foundations */
+      .foundations {
+        width: 1280px;
+        height: 600px;
+        padding: 56px;
+        border-radius: 32px;
+        background: var(--paper);
+      }
+
+      .eyebrow {
+        color: var(--brand-ink);
+        font: 700 16px/1 var(--ui);
+        letter-spacing: 0.08em;
+      }
+
+      .foundations h1 {
+        margin-top: 44px;
+        font: 900 72px/68px var(--display);
+        letter-spacing: -0.04em;
+      }
+
+      .lede {
+        margin-top: 30px;
+        color: var(--muted);
+        font: 400 20px/28px var(--ui);
+      }
+
+      .swatches {
+        display: flex;
+        gap: 14px;
+        margin-top: 40px;
+      }
+
+      .swatch {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 8px;
+        width: 114px;
+        height: 152px;
+        padding: 16px;
+        border-radius: 24px;
+        background: var(--fill);
+        font: 600 15px/1 var(--ui);
+      }
+
+      .swatch code {
+        opacity: 0.6;
+        font: 400 12px/1 var(--mono);
+      }
+
+      .swatch.is-ink {
+        --fill: var(--ink);
+
+        color: #fff;
+      }
+
+      .swatch.is-paper {
+        --fill: var(--paper);
+
+        border: 1.5px solid var(--ink);
+      }
+
+      .swatch.is-brand {
+        --fill: var(--brand-fill);
+
+        color: var(--on-brand);
+      }
+
+      .swatch.is-lavender {
+        --fill: var(--lavender);
+      }
+
+      .swatch.is-foil {
+        --fill: var(--foil);
+      }
+
+      [data-rarity="common"] {
+        --rarity: var(--common);
+        --fill: var(--common-fill);
+      }
+
+      [data-rarity="rare"] {
+        --rarity: var(--rare);
+        --fill: var(--rare-fill);
+      }
+
+      [data-rarity="epic"] {
+        --rarity: var(--epic);
+        --fill: var(--epic-fill);
+      }
+
+      [data-rarity="legendary"] {
+        --rarity: var(--legendary);
+        --fill: var(--legendary-fill);
+      }
+
+      /* Status bar */
+      .status-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 393px;
+        height: 54px;
+        padding: 6px 36px 0 37px;
+        font: 600 15px/1 var(--ui);
+      }
+
+      /* Booster pack */
+      .pack {
+        position: relative;
+        width: 232px;
+        height: 380px;
+      }
+
+      .pack-face {
+        position: absolute;
+        inset: 0;
+        background:
+          repeating-linear-gradient(
+              90deg,
+              rgb(255 255 255 / 0.14) 0 1px,
+              transparent 1px 4px
+            )
+            top / 100% 12px no-repeat,
+          repeating-linear-gradient(
+              90deg,
+              rgb(255 255 255 / 0.14) 0 1px,
+              transparent 1px 4px
+            )
+            bottom / 100% 12px no-repeat,
+          linear-gradient(var(--ink) 0 0) top / 100% 12px no-repeat,
+          linear-gradient(var(--ink) 0 0) bottom / 100% 12px no-repeat,
+          conic-gradient(from -59deg at 50% 100%, var(--ink) 118deg, #0000 0) 0
+            12px / 20px 6px repeat-x,
+          conic-gradient(from 121deg at 50% 0, var(--ink) 118deg, #0000 0) 0
+            362px / 20px 6px repeat-x;
+      }
+
+      .pack-face::before {
+        content: "";
+        position: absolute;
+        inset: 18px 0;
+        border-radius: 8px;
+        background: var(--ink);
+      }
+
+      .pack-foil {
+        position: absolute;
+        inset: 20px 2px;
+        overflow: hidden;
+        isolation: isolate;
+        border-radius: 7px;
+        background: var(--foil);
+        text-align: center;
+      }
+
+      .pack-covers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 184px;
+        margin: 24px auto 0;
+        overflow: hidden;
+        border: 2px solid var(--ink);
+        border-radius: 16px;
+        box-shadow: 0 8px 18px rgb(18 16 22 / 0.28);
+      }
+
+      .pack-covers img {
+        width: 90px;
+        height: 90px;
+        object-fit: cover;
+      }
+
+      .pack h3 {
+        margin-top: 14px;
+        font: 900 28px/29px var(--display);
+        letter-spacing: -0.02em;
+      }
+
+      .pack p {
+        margin-top: 16px;
+        font: 700 10px/1 var(--mono);
+        letter-spacing: 0.08em;
+      }
+
+      .pack-foil .pack-shade {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(
+            130% 80% at 50% 45%,
+            transparent 55%,
+            rgb(18 16 22 / 0.24)
+          ),
+          linear-gradient(
+            90deg,
+            rgb(255 255 255 / 0.3),
+            transparent 7%,
+            transparent 92%,
+            rgb(18 16 22 / 0.16)
+          );
+      }
+
+      .pack-edge {
+        position: absolute;
+        top: 18px;
+        bottom: 18px;
+        width: 6px;
+        background: linear-gradient(#3a3344, var(--ink));
+      }
+
+      .pack-edge.is-left {
+        left: 0;
+        transform: rotateY(90deg);
+        transform-origin: left;
+      }
+
+      .pack-edge.is-right {
+        right: 0;
+        transform: rotateY(-90deg);
+        transform-origin: right;
+      }
+
+      .on-floor {
+        -webkit-box-reflect: below 6px
+          linear-gradient(transparent 68%, rgb(255 255 255 / 0.32));
+      }
+
+      .floor-shadow {
+        position: absolute;
+        height: 20px;
+        border-radius: 50%;
+        background: rgb(56 36 110 / 0.32);
+        filter: blur(8px);
+        animation: shadow 5s ease-in-out infinite;
+      }
+
+      .bob {
+        animation: bob 5s ease-in-out infinite;
+      }
+
+      .bob .tilt-body {
+        animation: sway 9s ease-in-out infinite;
+      }
+
+      @keyframes bob {
+        50% {
+          translate: 0 -8px;
+        }
+      }
+
+      @keyframes sway {
+        25% {
+          rotate: y 7deg;
+        }
+        75% {
+          rotate: y -7deg;
+        }
+      }
+
+      @keyframes shadow {
+        50% {
+          scale: 0.86;
+          opacity: 0.7;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .bob,
+        .bob .tilt-body,
+        .floor-shadow {
+          animation: none;
+        }
+      }
+
+      .studio {
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: radial-gradient(
+          120% 70% at 50% 82%,
+          #fff 0,
+          #ece4ff 35%,
+          var(--lavender) 75%
+        );
+      }
+
+      .pack-stage {
+        width: 320px;
+        height: 520px;
+        border-radius: 32px;
+      }
+
+      .pack-stage > .pack {
+        position: absolute;
+        top: 40px;
+        left: 44px;
+      }
+
+      .pack-stage > .floor-shadow {
+        top: 412px;
+        left: 70px;
+        width: 180px;
+      }
+
+      /* Card back */
+      .card-back {
+        width: 240px;
+        height: 336px;
+      }
+
+      .card-back .tilt-body {
+        padding: 12px;
+        border-radius: 24px;
+        background: var(--ink);
+      }
+
+      .card-back-face {
+        position: relative;
+        height: 100%;
+        padding-top: 77px;
+        overflow: hidden;
+        isolation: isolate;
+        border-radius: 16px;
+        background: var(--brand-fill);
+        color: var(--on-brand);
+        text-align: center;
+      }
+
+      .card-back-face svg {
+        position: absolute;
+        inset: 0;
+        color: color-mix(in srgb, var(--on-brand) 45%, transparent);
+      }
+
+      .card-back-face .disc {
+        display: block;
+        width: 96px;
+        height: 96px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background:
+          radial-gradient(
+            circle,
+            var(--paper) 0 3px,
+            var(--brand) 3.5px 15px,
+            var(--ink) 15.5px 19px,
+            transparent 19.5px
+          ),
+          conic-gradient(
+            from 40deg,
+            transparent,
+            rgb(255 255 255 / 0.14) 8%,
+            transparent 18%,
+            transparent 50%,
+            rgb(255 255 255 / 0.14) 58%,
+            transparent 68%
+          ),
+          repeating-radial-gradient(
+            circle,
+            var(--ink) 0 1.5px,
+            #26222d 2px 2.5px
+          );
+        box-shadow: 0 6px 16px rgb(18 16 22 / 0.35);
+      }
+
+      .card-back-face b {
+        display: block;
+        margin-top: 10px;
+        font: 900 28px/1 var(--display);
+        letter-spacing: -0.02em;
+      }
+
+      .card-back-face span {
+        display: block;
+        margin-top: 11px;
+        color: color-mix(in srgb, var(--on-brand) 70%, transparent);
+        font: 600 12px/1 var(--ui);
+        letter-spacing: 0.3em;
+      }
+
+      /* Song card */
+      .song-cards {
+        display: flex;
+        gap: 32px;
+        width: 1120px;
+        height: 406px;
+        padding: 32px;
+        border-radius: 24px;
+        background: var(--paper);
+      }
+
+      .song-card {
+        width: 240px;
+        height: 336px;
+      }
+
+      .song-card .tilt-body {
+        padding: 10px;
+        overflow: hidden;
+        border: 2px solid var(--ink);
+        border-radius: 24px;
+        background: var(--fill);
+        box-shadow: 0 6px 0 var(--ink);
+      }
+
+      .song-card-cover {
+        position: relative;
+        overflow: hidden;
+        border: 2px solid var(--ink);
+        border-radius: 14px;
+      }
+
+      .song-card-cover img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+      }
+
+      .rarity-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--rarity);
+        font: 700 11px/1 var(--ui);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .song-card h3 {
+        margin: 12px 6px 0;
+        overflow: hidden;
+        font: 800 18px/1.2 var(--display);
+        letter-spacing: -0.04em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .song-card p {
+        margin: 2px 6px 0;
+        color: rgb(18 16 22 / 0.6);
+        font: 400 14px/1.2 var(--ui);
+      }
+
+      .song-card footer {
+        position: absolute;
+        right: 16px;
+        bottom: 22px;
+        left: 16px;
+        display: flex;
+        justify-content: space-between;
+        font: 700 12px/1 var(--ui);
+      }
+
+      .song-card footer span {
+        color: rgb(18 16 22 / 0.5);
+        font: 400 11px/1 var(--mono);
+      }
+
+      /* Tab bar */
+      .tab-bars {
+        display: grid;
+        gap: 20px;
+        width: 385px;
+        height: 272px;
+        padding: 20px;
+        border-radius: 24px;
+        background: var(--paper);
+      }
+
+      .tab-bar {
+        display: flex;
+        gap: 8px;
+        width: 345px;
+        padding: 8px;
+        border-radius: 999px;
+        background: var(--ink);
+      }
+
+      .tab {
+        display: flex;
+        flex: 0 0 48px;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 48px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: var(--chip);
+        color: #fff;
+        font: 600 17px/1 var(--ui);
+        cursor: pointer;
+        transition:
+          flex-grow 0.25s ease,
+          background-color 0.25s ease;
+      }
+
+      .tab svg {
+        flex: none;
+        width: 20px;
+        height: 20px;
+      }
+
+      .tab span {
+        display: none;
+      }
+
+      .tab[aria-current] {
+        flex-grow: 1;
+        background: var(--brand);
+        color: var(--on-brand);
+      }
+
+      .tab[aria-current] span {
+        display: inline;
+      }
+
+      /* 01 · Home / Packs */
+      .phone {
+        position: relative;
+        width: 393px;
+        height: 852px;
+        overflow: hidden;
+        border-radius: 48px;
+        background: var(--paper);
+      }
+
+      .phone > * {
+        position: absolute;
+      }
+
+      .phone > .status-bar {
+        top: 0;
+        left: 0;
+      }
+
+      .pill {
+        display: flex;
+        align-items: center;
+        height: 40px;
+        border-radius: 999px;
+        background: #fff;
+        font: 600 15px/1 var(--ui);
+      }
+
+      .profile-pill {
+        top: 62px;
+        left: 24px;
+        gap: 9px;
+        padding: 0 10px 0 4px;
+      }
+
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--lavender);
+      }
+
+      .level {
+        margin-left: 1px;
+        padding: 3px 7px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+        font: 700 11px/1 var(--ui);
+      }
+
+      .count-pill {
+        top: 62px;
+        right: 24px;
+        gap: 7px;
+        padding: 0 16px 0 14px;
+      }
+
+      .count-pill::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--brand);
+      }
+
+      .home-title {
+        top: 118px;
+        left: 24px;
+        font: 900 46px/44px var(--display);
+        letter-spacing: -0.04em;
+      }
+
+      .stage {
+        top: 230px;
+        left: 24px;
+        width: 345px;
+        height: 452px;
+        border-radius: 36px;
+        perspective: 900px;
+        perspective-origin: 50% 40%;
+      }
+
+      .stage > * {
+        position: absolute;
+      }
+
+      .stage > .pack {
+        top: -4px;
+        left: 56px;
+      }
+
+      .pack.is-main {
+        scale: 0.8;
+      }
+
+      .pack.is-side {
+        opacity: 0.75;
+        filter: saturate(0.85) brightness(0.96);
+      }
+
+      .pack.is-side.is-left {
+        transform: translateX(-132px) translateZ(-170px) rotateY(34deg)
+          scale(0.8);
+      }
+
+      .pack.is-side.is-right {
+        transform: translateX(132px) translateZ(-170px) rotateY(-34deg)
+          scale(0.8);
+      }
+
+      .stage > .floor-shadow {
+        top: 330px;
+        left: 100px;
+        width: 145px;
+      }
+
+      .ready-chip {
+        top: 16px;
+        left: 16px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+        font: 600 14px/1 var(--ui);
+      }
+
+      .ready-chip::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--common);
+      }
+
+      .pager {
+        top: 356px;
+        left: 0;
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        width: 100%;
+      }
+
+      .pager i {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--ink);
+        opacity: 0.35;
+      }
+
+      .pager i:first-child {
+        width: 16px;
+        opacity: 1;
+      }
+
+      .cta {
+        top: 376px;
+        left: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        width: 313px;
+        height: 60px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+        font: 600 18px/1 var(--ui);
+        cursor: pointer;
+      }
+
+      .cta svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .odds {
+        top: 702px;
+        left: 24px;
+        display: flex;
+        gap: 6px;
+        width: 345px;
+        list-style: none;
+      }
+
+      .odds li {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 30px;
+        border-radius: 999px;
+        background: var(--fill);
+        font: 700 13px/1 var(--ui);
+      }
+
+      .odds span {
+        color: rgb(18 16 22 / 0.55);
+        font: 400 13px/1 var(--mono);
+      }
+
+      .phone > .tab-bar {
+        top: 754px;
+        left: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hud">
+      <strong>Musi Master</strong>
+      <output id="zoom">100%</output>
+      <button type="button" data-zoom="fit">Fit</button>
+      <button type="button" data-zoom="1">100%</button>
+      <label
+        >Brand
+        <select id="brand"></select
+      ></label>
+    </div>
+    <p class="hint">
+      Drag or scroll to pan · Pinch or ⌘ + scroll to zoom · Double-click a frame
+      to focus · Hover packs and cards to tilt them
+    </p>
+
+    <svg width="0" height="0" aria-hidden="true">
+      <defs>
+        <symbol
+          id="icon-box"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+          />
+          <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
+        </symbol>
+        <symbol
+          id="icon-layers"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+          />
+          <path
+            d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"
+          />
+        </symbol>
+        <symbol
+          id="icon-user"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="8" r="4" />
+          <path d="M5 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1" />
+        </symbol>
+        <symbol
+          id="icon-arrow"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4 12h16M13 5l7 7-7 7" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <template id="status-bar">
+      <div class="status-bar">
+        <span>9:41</span>
+        <svg width="62" height="12" viewBox="0 0 62 12" aria-hidden="true">
+          <g fill="currentColor">
+            <rect x="0" y="8" width="3" height="4" rx="0.8" />
+            <rect x="5" y="5.5" width="3" height="6.5" rx="0.8" />
+            <rect x="10" y="3" width="3" height="9" rx="0.8" />
+            <rect x="15" y="0.5" width="3" height="11.5" rx="0.8" />
+            <circle cx="34" cy="10" r="1.5" />
+            <rect x="47" y="3" width="11" height="6" rx="1.4" />
+            <path d="M60.5 4.3a1.7 1.7 0 0 1 0 3.4Z" opacity="0.4" />
+          </g>
+          <g fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M28.3 4.6a8 8 0 0 1 11.4 0" stroke-width="1.7" />
+            <path d="M30.7 7.2a4.6 4.6 0 0 1 6.6 0" stroke-width="1.7" />
+            <rect
+              x="45.5"
+              y="1.5"
+              width="14"
+              height="9"
+              rx="2.6"
+              opacity="0.4"
+            />
+          </g>
+        </svg>
+      </div>
+    </template>
+
+    <template id="pack">
+      <div class="pack tilt">
+        <div class="tilt-body">
+          <i class="pack-edge is-left"></i>
+          <i class="pack-edge is-right"></i>
+          <div class="pack-face">
+            <div class="pack-foil">
+              <canvas class="fx" data-shader="foil"></canvas>
+              <div class="pack-covers">
+                <img src="covers/after-hours.jpg" alt="After Hours" />
+                <img src="covers/black-panther.jpg" alt="Black Panther" />
+                <img
+                  src="covers/hollywoods-bleeding.jpg"
+                  alt="Hollywood's Bleeding"
+                />
+                <img src="covers/californication.jpg" alt="Californication" />
+              </div>
+              <h3>BILLION<br />CLUB</h3>
+              <p>5 SONG CARDS · VOL. 1</p>
+              <i class="pack-shade"></i>
+              <i class="glare"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template id="tab-bar">
+      <nav class="tab-bar" aria-label="Main">
+        <button class="tab" type="button" data-tab="packs">
+          <svg aria-hidden="true"><use href="#icon-box" /></svg>
+          <span>Packs</span>
+        </button>
+        <button class="tab" type="button" data-tab="collection">
+          <svg aria-hidden="true"><use href="#icon-layers" /></svg>
+          <span>Collection</span>
+        </button>
+        <button class="tab" type="button" data-tab="profile">
+          <svg aria-hidden="true"><use href="#icon-user" /></svg>
+          <span>Profile</span>
+        </button>
+      </nav>
+    </template>
+
+    <main class="viewport">
+      <div class="world">
+        <section class="frame" data-name="Foundations" style="left: 0; top: 0">
+          <div class="foundations">
+            <p class="eyebrow">MUSI MASTER</p>
+            <h1>Collect the<br />songs you love.</h1>
+            <p class="lede">
+              Unbounded Black / ExtraBold for display. Space Grotesk for UI and
+              body.<br />Cream paper + ink black +
+              <span data-brand-name></span> accent; pastel gradients for rarity,
+              holo foil for packs.
+            </p>
+            <div class="swatches">
+              <div class="swatch is-ink">Ink<code>#121016</code></div>
+              <div class="swatch is-paper">Paper<code>#F5F2EA</code></div>
+              <div class="swatch is-brand">
+                <span data-brand-name></span><code data-brand-hex></code>
+              </div>
+              <div class="swatch is-lavender">Lavender<code>#D9C8FF</code></div>
+              <div class="swatch is-foil">Foil<code>8 stops</code></div>
+              <div class="swatch" data-rarity="common">
+                Common<code>#BDF2E1</code>
+              </div>
+              <div class="swatch" data-rarity="rare">
+                Rare<code>#A9B8FF</code>
+              </div>
+              <div class="swatch" data-rarity="epic">
+                Epic<code>#F5B0EE</code>
+              </div>
+              <div class="swatch" data-rarity="legendary">
+                Legendary<code>#FFD64A</code>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="frame"
+          data-name="01 · Home / Packs"
+          style="left: 0; top: 700px"
+        >
+          <div class="phone">
+            <div data-use="status-bar"></div>
+            <div class="pill profile-pill">
+              <span class="avatar"></span>Léo<span class="level">LV 7</span>
+            </div>
+            <div class="pill count-pill">142 / 1,013</div>
+            <h2 class="home-title">Open<br />your pack</h2>
+            <div class="stage studio">
+              <canvas class="fx" data-shader="studio"></canvas>
+              <div class="is-side is-left on-floor" data-use="pack"></div>
+              <div class="is-side is-right on-floor" data-use="pack"></div>
+              <i class="floor-shadow"></i>
+              <div class="is-main on-floor bob" data-use="pack"></div>
+              <span class="ready-chip">2 free packs ready</span>
+              <span class="pager" aria-hidden="true"
+                ><i></i><i></i><i></i
+              ></span>
+              <button class="cta" type="button">
+                Tear it open
+                <svg aria-hidden="true"><use href="#icon-arrow" /></svg>
+              </button>
+            </div>
+            <ul class="odds">
+              <li data-rarity="common">Common <span>64%</span></li>
+              <li data-rarity="rare">Rare <span>24%</span></li>
+              <li data-rarity="epic">Epic <span>9%</span></li>
+              <li data-rarity="legendary">Lege. <span>3%</span></li>
+            </ul>
+            <div data-use="tab-bar" data-active="packs"></div>
+          </div>
+        </section>
+
+        <section
+          class="frame"
+          data-name="Song Card"
+          style="left: 473px; top: 700px"
+        >
+          <div class="song-cards"></div>
+        </section>
+
+        <section
+          class="frame"
+          data-name="Booster Pack"
+          style="left: 473px; top: 1206px"
+        >
+          <div class="pack-stage studio">
+            <canvas class="fx" data-shader="studio"></canvas>
+            <i class="floor-shadow"></i>
+            <div class="on-floor bob" data-use="pack"></div>
+          </div>
+        </section>
+
+        <section
+          class="frame"
+          data-name="Card Back"
+          style="left: 833px; top: 1206px"
+        >
+          <div class="card-back tilt">
+            <div class="tilt-body">
+              <div class="card-back-face">
+                <canvas class="fx" data-shader="back"></canvas>
+                <svg viewBox="0 0 216 312" aria-hidden="true">
+                  <rect
+                    x="1.5"
+                    y="1.5"
+                    width="213"
+                    height="309"
+                    rx="14.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-dasharray="6 6"
+                  />
+                </svg>
+                <i class="disc"></i><b>MUSI</b><span>MASTER</span>
+                <i class="glare"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="frame"
+          data-name="Tab Bar"
+          style="left: 1113px; top: 1206px"
+        >
+          <div class="tab-bars">
+            <div data-use="tab-bar" data-active="packs"></div>
+            <div data-use="tab-bar" data-active="collection"></div>
+            <div data-use="tab-bar" data-active="profile"></div>
+          </div>
+        </section>
+
+        <section
+          class="frame"
+          data-name="Status Bar"
+          style="left: 1113px; top: 1546px"
+        >
+          <div data-use="status-bar"></div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module">
+      const SHADERS_URL =
+        "https://cdn.jsdelivr.net/npm/shaders@4.0.0/dist/js/bundle.js"
+
+      // Shader gradients take at most 8 stops.
+      const FOIL = [
+        ["#9b3cff", 0.04],
+        ["#c470f8", 0.15],
+        ["#f5c4f2", 0.3],
+        ["#ffd64a", 0.46],
+        ["#d8d6d8", 0.58],
+        ["#a9b8ff", 0.66],
+        ["#a173fe", 0.74],
+        ["#9b3cff", 0.82],
+      ]
+
+      const RARITIES = {
+        common: ["#9ff5d8", "#d7fbe9", "#7fe3c2", "#c8f7e4"],
+        rare: ["#a9b8ff", "#d2d9ff", "#8b9cff", "#c4bdff"],
+        epic: ["#f5b0ee", "#ffd1f5", "#d9a0ff", "#ffc2dc"],
+        legendary: ["#ffd64a", "#ffe98a", "#ffb02e", "#fff3b0"],
+      }
+
+      const BRANDS = {
+        Volt: {
+          color: "#ff4d2e",
+          on: "#ffffff",
+          ink: "#e5391b",
+          mesh: ["#ff4d2e", "#ff7a45", "#ff3355", "#ffa06b"],
+        },
+        Acid: {
+          color: "#c8f43a",
+          on: "#121016",
+          ink: "#5e8c00",
+          mesh: ["#c8f43a", "#e4ff7a", "#a6e01f", "#f2ffb8"],
+        },
+        Ultramarine: {
+          color: "#3b3bff",
+          on: "#ffffff",
+          ink: "#3b3bff",
+          mesh: ["#3b3bff", "#6a5cff", "#2a2ae0", "#7d8cff"],
+        },
+        Magenta: {
+          color: "#ff2e8b",
+          on: "#ffffff",
+          ink: "#e5167a",
+          mesh: ["#ff2e8b", "#ff5fa8", "#e01570", "#ff8fc2"],
+        },
+      }
+
+      const songs = [
+        [
+          "common",
+          "face-value",
+          "In the Air Tonight",
+          "Phil Collins",
+          "1.1B",
+          865,
+        ],
+        ["rare", "anti", "Needed Me", "Rihanna", "2.0B", 248],
+        ["epic", "torches", "Pumped Up Kicks", "Foster The People", "2.6B", 93],
+        [
+          "legendary",
+          "after-hours",
+          "Blinding Lights",
+          "The Weeknd",
+          "5.6B",
+          1,
+        ],
+      ]
+
+      const root = document.documentElement
+      const cssGradient = (colors) =>
+        `linear-gradient(135deg, ${colors.join(", ")})`
+
+      root.style.setProperty(
+        "--foil",
+        `linear-gradient(135deg, ${FOIL.map(([color, at]) => `${color} ${at * 100}%`).join(", ")})`
+      )
+      for (const [rarity, colors] of Object.entries(RARITIES)) {
+        root.style.setProperty(`--${rarity}-fill`, cssGradient(colors))
+      }
+
+      document.querySelector(".song-cards").innerHTML = songs
+        .map(
+          ([rarity, cover, title, artist, streams, rank]) => `
+            <article class="song-card tilt" data-rarity="${rarity}">
+              <div class="tilt-body">
+                <canvas class="fx" data-shader="${rarity}"></canvas>
+                <div class="song-card-cover">
+                  <img src="covers/${cover}.jpg" alt="" />
+                  <span class="rarity-badge">${rarity}</span>
+                </div>
+                <h3>${title}</h3>
+                <p>${artist}</p>
+                <footer>
+                  <b>${streams} streams</b>
+                  <span>#${String(rank).padStart(3, "0")}</span>
+                </footer>
+                <i class="glare"></i>
+              </div>
+            </article>`
+        )
+        .join("")
+
+      for (const slot of document.querySelectorAll("[data-use]")) {
+        const node = document
+          .getElementById(slot.dataset.use)
+          .content.firstElementChild.cloneNode(true)
+        node.classList.add(...slot.classList)
+        node
+          .querySelector(`[data-tab="${slot.dataset.active}"]`)
+          ?.setAttribute("aria-current", "page")
+        if (node.matches(".is-side")) node.querySelector(".fx").remove()
+        slot.replaceWith(node)
+      }
+
+      document.addEventListener("click", (event) => {
+        const tab = event.target.closest(".tab")
+        if (!tab) return
+        tab.parentElement
+          .querySelector("[aria-current]")
+          ?.removeAttribute("aria-current")
+        tab.setAttribute("aria-current", "page")
+      })
+
+      // Brand
+      const brandSelect = document.getElementById("brand")
+      brandSelect.innerHTML = Object.keys(BRANDS)
+        .map((name) => `<option>${name}</option>`)
+        .join("")
+
+      const applyBrand = (name) => {
+        const brand = BRANDS[name]
+        root.style.setProperty("--brand", brand.color)
+        root.style.setProperty("--on-brand", brand.on)
+        root.style.setProperty("--brand-ink", brand.ink)
+        root.style.setProperty("--brand-fill", cssGradient(brand.mesh))
+        for (const el of document.querySelectorAll("[data-brand-name]")) {
+          el.textContent = name
+        }
+        for (const el of document.querySelectorAll("[data-brand-hex]")) {
+          el.textContent = brand.color.toUpperCase()
+        }
+        for (const canvas of document.querySelectorAll(
+          '[data-shader="back"]'
+        )) {
+          canvas.fx?.update("mesh", { stops: toStops(brand.mesh) })
+        }
+        brandSelect.value = name
+        localStorage.setItem("musi-brand", name)
+      }
+
+      brandSelect.addEventListener("change", () =>
+        applyBrand(brandSelect.value)
+      )
+
+      // Shaders (shaders.com, WebGPU). CSS gradients stay underneath as fallback.
+      const toStops = (colors) =>
+        colors.map((color, index) => ({
+          color,
+          position: index / (colors.length - 1),
+        }))
+      const fullRect = JSON.stringify({
+        type: "roundedRectSDF",
+        radius: 0.8,
+        height: 0.8,
+      })
+      const mesh = (colors, props) => ({
+        type: "MeshGradient",
+        id: "mesh",
+        props: {
+          stops: toStops(colors),
+          count: 5,
+          smoothness: 2.2,
+          speed: 0.3,
+          ...props,
+        },
+      })
+      const holo = (props) => ({
+        type: "Holographic",
+        id: "holo",
+        props: {
+          shape: fullRect,
+          foilScale: 1.3,
+          saturation: 0.5,
+          sparkle: 0.5,
+          crinkle: 0.4,
+          roughness: 0.15,
+          ...props,
+        },
+      })
+      const sparkle = (props, children) => ({
+        type: "Sparkle",
+        props,
+        children,
+      })
+
+      const PRESETS = {
+        foil: () => [
+          sparkle({ size: 80, intensity: 7, threshold: 0.6 }, [
+            {
+              type: "WaveDistortion",
+              props: { strength: 0.1, frequency: 1.2, speed: 0.35, angle: 45 },
+              children: [
+                {
+                  type: "LinearGradient",
+                  id: "sheen",
+                  props: {
+                    stops: FOIL.map(([color, position]) => ({
+                      color,
+                      position,
+                    })),
+                    start: { x: 0, y: 0 },
+                    end: { x: 1, y: 1 },
+                    colorSpace: "oklch",
+                  },
+                },
+              ],
+            },
+            holo({ opacity: 0.45, blendMode: "overlay" }),
+          ]),
+        ],
+        studio: () => [
+          {
+            type: "StudioBackground",
+            props: {
+              color: "#e6dcff",
+              keyColor: "#ffffff",
+              fillColor: "#f4efff",
+              backColor: "#d9c8ff",
+              center: { x: 0.5, y: 0.8 },
+              brightness: 100,
+              keyIntensity: 50,
+              backIntensity: 45,
+              fillIntensity: 30,
+              ambientIntensity: 40,
+              ambientSpeed: 1,
+            },
+          },
+          {
+            type: "LinearGradient",
+            props: {
+              colorA: "#d9c8ff",
+              colorB: "#ffffff",
+              start: { x: 0.5, y: 0 },
+              end: { x: 0.5, y: 1 },
+              opacity: 0.7,
+              blendMode: "screen",
+            },
+          },
+        ],
+        back: () => [
+          mesh(BRANDS[brandSelect.value].mesh, { speed: 0.25 }),
+          holo({ opacity: 0.18, blendMode: "softLight", sparkle: 0.2 }),
+        ],
+        common: () => [mesh(RARITIES.common, { speed: 0.2 })],
+        rare: () => [
+          mesh(RARITIES.rare, { speed: 0.25 }),
+          holo({ opacity: 0.18, blendMode: "softLight", sparkle: 0.2 }),
+        ],
+        epic: () => [
+          mesh(RARITIES.epic, { speed: 0.3 }),
+          holo({ opacity: 0.4, blendMode: "softLight", sparkle: 0.4 }),
+        ],
+        legendary: () => [
+          sparkle({ size: 55, intensity: 10, threshold: 0.45 }, [
+            mesh(RARITIES.legendary, { speed: 0.35 }),
+            holo({ opacity: 0.45, blendMode: "overlay", sparkle: 0.6 }),
+          ]),
+        ],
+      }
+
+      // Tilting shifts the holo hue and slides the foil bands, like real foil.
+      const react = (canvas, x, y) => {
+        const fx = canvas?.fx
+        const name = canvas?.dataset.shader
+        if (!fx || name === "common" || name === "studio") return
+        fx.update("holo", { hueShift: ((x - y) * 240 + 360) % 360 })
+        if (name === "foil") {
+          const shift = { x: -x * 0.4, y: -y * 0.4 }
+          fx.update("sheen", {
+            start: shift,
+            end: { x: 1 + shift.x, y: 1 + shift.y },
+          })
+        }
+      }
+
+      const mountShaders = async () => {
+        let createShader
+        try {
+          ;({ createShader } = await import(SHADERS_URL))
+        } catch {
+          return
+        }
+        const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches
+        await Promise.all(
+          [...document.querySelectorAll("canvas[data-shader]")].map(
+            async (canvas) => {
+              canvas.style.width = "100%"
+              canvas.style.height = "100%"
+              try {
+                canvas.fx = await createShader(
+                  canvas,
+                  { components: PRESETS[canvas.dataset.shader]() },
+                  { disableTelemetry: true }
+                )
+                if (reduced) setTimeout(() => canvas.fx.pause(), 600)
+              } catch {
+                canvas.remove()
+              }
+            }
+          )
+        )
+      }
+
+      applyBrand(
+        BRANDS[localStorage.getItem("musi-brand")]
+          ? localStorage.getItem("musi-brand")
+          : "Volt"
+      )
+
+      // Pan + zoom
+      const viewport = document.querySelector(".viewport")
+      const world = document.querySelector(".world")
+      const zoomLabel = document.getElementById("zoom")
+      const saved = JSON.parse(sessionStorage.getItem("canvas-view"))
+      const view = saved ?? { x: 0, y: 0, k: 1 }
+
+      const apply = () => {
+        world.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.k})`
+        zoomLabel.textContent = `${Math.round(view.k * 100)}%`
+        sessionStorage.setItem("canvas-view", JSON.stringify(view))
+      }
+
+      const focus = (x, y, width, height) => {
+        const padding = 64
+        view.k = Math.min(
+          (innerWidth - padding * 2) / width,
+          (innerHeight - padding * 2) / height,
+          2
+        )
+        view.x = (innerWidth - width * view.k) / 2 - x * view.k
+        view.y = (innerHeight - height * view.k) / 2 - y * view.k
+        apply()
+      }
+
+      const fit = () =>
+        focus(0, -40, world.offsetWidth, world.offsetHeight + 40)
+
+      const zoomAt = (clientX, clientY, k) => {
+        const next = Math.min(4, Math.max(0.1, k))
+        view.x = clientX - ((clientX - view.x) * next) / view.k
+        view.y = clientY - ((clientY - view.y) * next) / view.k
+        view.k = next
+        apply()
+      }
+
+      viewport.addEventListener(
+        "wheel",
+        (event) => {
+          event.preventDefault()
+          if (event.ctrlKey || event.metaKey) {
+            zoomAt(
+              event.clientX,
+              event.clientY,
+              view.k * Math.exp(-event.deltaY * 0.01)
+            )
+            return
+          }
+          view.x -= event.deltaX
+          view.y -= event.deltaY
+          apply()
+        },
+        { passive: false }
+      )
+
+      let drag = null
+      viewport.addEventListener("pointerdown", (event) => {
+        if (event.target.closest("button")) return
+        drag = { x: event.clientX - view.x, y: event.clientY - view.y }
+        viewport.setPointerCapture(event.pointerId)
+        viewport.classList.add("is-panning")
+      })
+      viewport.addEventListener("pointermove", (event) => {
+        if (!drag) return
+        view.x = event.clientX - drag.x
+        view.y = event.clientY - drag.y
+        apply()
+      })
+      viewport.addEventListener("pointerup", () => {
+        drag = null
+        viewport.classList.remove("is-panning")
+      })
+
+      viewport.addEventListener("dblclick", (event) => {
+        const frame = document
+          .elementFromPoint(event.clientX, event.clientY)
+          ?.closest(".frame")
+        if (!frame) return
+        focus(
+          frame.offsetLeft,
+          frame.offsetTop - 40,
+          frame.offsetWidth,
+          frame.offsetHeight + 40
+        )
+      })
+
+      document.querySelector(".hud").addEventListener("click", (event) => {
+        const zoom = event.target.dataset.zoom
+        if (zoom === "fit") fit()
+        if (zoom === "1") zoomAt(innerWidth / 2, innerHeight / 2, 1)
+      })
+
+      addEventListener("keydown", (event) => {
+        if (!event.shiftKey) return
+        if (event.code === "Digit1") fit()
+        if (event.code === "Digit0") zoomAt(innerWidth / 2, innerHeight / 2, 1)
+      })
+
+      // Tilt
+      for (const el of document.querySelectorAll(".tilt:not(.is-side)")) {
+        const canvas = el.querySelector("canvas[data-shader]")
+        el.addEventListener("pointermove", (event) => {
+          if (drag) return
+          const box = el.getBoundingClientRect()
+          const x = (event.clientX - box.left) / box.width - 0.5
+          const y = (event.clientY - box.top) / box.height - 0.5
+          el.classList.add("is-tilting")
+          el.style.setProperty("--rx", `${-y * 22}deg`)
+          el.style.setProperty("--ry", `${x * 26}deg`)
+          el.style.setProperty("--gx", `${(x + 0.5) * 100}%`)
+          el.style.setProperty("--gy", `${(y + 0.5) * 100}%`)
+          react(canvas, x, y)
+        })
+        el.addEventListener("pointerleave", () => {
+          el.classList.remove("is-tilting")
+          for (const prop of ["--rx", "--ry", "--gx", "--gy"]) {
+            el.style.removeProperty(prop)
+          }
+          react(canvas, 0, 0)
+        })
+      }
+
+      if (saved) apply()
+      else fit()
+
+      mountShaders()
+    </script>
+  </body>
+</html>

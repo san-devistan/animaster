@@ -1,0 +1,29 @@
+{
+  "short_name": "Musi Master",
+  "name": "Musi Master - Music TCG",
+  "description": "Collect cards for the songs you love.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#d5c3f8",
+  "background_color": "#d5c3f8"
+}

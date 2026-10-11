@@ -1,0 +1,27 @@
+{
+  "name": "musi-master",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build --filter=web",
+    "dev": "turbo run dev --filter=web --filter=@workspace/backend",
+    "fix": "bash scripts/fix.sh",
+    "update:deps": "pnpm update -r && pnpm peers check --lockfile-only",
+    "sync:design-system": "node scripts/sync-design-system.mjs"
+  },
+  "devDependencies": {
+    "@shadcn/lint": "^0.1.5",
+    "oxfmt": "^0.48.0",
+    "oxlint": "^1.86.0",
+    "oxlint-tsgolint": "^7.0.2003",
+    "portless": "^0.15.6",
+    "react-doctor": "0.9.14",
+    "turbo": "^2.11.5",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.13",
+    "pnpm": ">=11.1.2"
+  },
+  "packageManager": "pnpm@12.8.1"
+}
