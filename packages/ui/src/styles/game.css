@@ -2,16 +2,16 @@
 :root {
   --foil: linear-gradient(
     135deg,
-    #a238ff 4%,
-    #c470f8 15%,
-    #f5c4f2 30%,
+    #2e9e52 4%,
+    #68c36d 15%,
+    #c2ecb9 30%,
     #ffd64a 46%,
     #d8d6d8 58%,
-    #a9b8ff 66%,
-    #a173fe 74%,
-    #a238ff 82%
+    #7bd1ba 66%,
+    #35aa76 74%,
+    #2e9e52 82%
   );
-  --brand-mesh: linear-gradient(135deg, #a238ff, #c470f8, #7b2cff, #d9a0ff);
+  --brand-mesh: linear-gradient(135deg, #2e9e52, #68c36d, #0b7643, #9dde9e);
   /* Each rarity's dominant card colour: the base of its foil fill below. */
   --rarity-common-base: #5fd9b0;
   --rarity-rare-base: #6f86ff;
@@ -119,7 +119,7 @@
   border-radius: 24px;
   box-shadow:
     0 1px 0 rgb(255 255 255 / 0.6) inset,
-    0 18px 36px -12px rgb(56 36 110 / 0.45);
+    0 18px 36px -12px rgb(20 54 29 / 0.45);
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -289,7 +289,7 @@
   animation: game-katana-glint 0.5s ease-out forwards;
 }
 
-/* Chunky 3D surfaces: white bodies on an ink ledge, with purple gloss chips. */
+/* Chunky 3D surfaces: white bodies on an ink ledge, with green gloss chips. */
 :root {
   --chunky-fill: linear-gradient(
     #fff,
@@ -298,7 +298,7 @@
   --chunky-bevel:
     0 2px 0 rgb(255 255 255 / 0.9) inset,
     0 -3px 0 color-mix(in oklab, var(--lavender) 55%, transparent) inset;
-  --chunky-drop: 0 12px 18px -6px rgb(56 36 110 / 0.45);
+  --chunky-drop: 0 12px 18px -6px rgb(20 54 29 / 0.45);
   --chunky-chip: 0 1px 0 rgb(255 255 255 / 0.45) inset;
 }
 
@@ -367,7 +367,7 @@
       0 2px 0 rgb(255 255 255 / 0.9) inset,
       0 -3px 0 color-mix(in oklab, var(--lavender) 55%, transparent) inset,
       0 6px 0 var(--ink),
-      0 14px 20px -6px rgb(56 36 110 / 0.5);
+      0 14px 20px -6px rgb(20 54 29 / 0.5);
   }
 
   &:active,
@@ -377,7 +377,7 @@
       0 2px 0 rgb(255 255 255 / 0.9) inset,
       0 -2px 0 color-mix(in oklab, var(--lavender) 55%, transparent) inset,
       0 1px 0 var(--ink),
-      0 4px 8px -4px rgb(56 36 110 / 0.4);
+      0 4px 8px -4px rgb(20 54 29 / 0.4);
   }
 
   &:focus-visible {
@@ -426,7 +426,7 @@
   box-shadow:
     0 2px 0 rgb(255 255 255 / 0.9) inset,
     0 6px 0 var(--ink),
-    0 22px 36px -10px rgb(56 36 110 / 0.55);
+    0 22px 36px -10px rgb(20 54 29 / 0.55);
   /* Leave room for the ink ledge so the bottom edge is never clipped. */
   margin-bottom: 0.5rem;
 

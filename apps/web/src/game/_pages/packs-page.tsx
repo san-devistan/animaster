@@ -1,15 +1,26 @@
-import { DEMO_PACK, PACK_IMAGES } from "@/game/_lib/demo-data"
+import { photoUrl, withPhoto } from "@/game/_lib/photos"
+import { convexQuery } from "@convex-dev/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
+import { api } from "@workspace/backend/api"
 import { PackOpening } from "@workspace/ui/components/pack-opening"
-import { useState } from "react"
+import { useMutation } from "convex/react"
+import type { FunctionReturnType } from "convex/server"
+import { useEffect, useState } from "react"
 
 // The pack flies in only the first time the page loads; coming back to the
 // tab later, it's already waiting. Module state, so a full reload replays it.
 let arrived = false
 
+type Pull = FunctionReturnType<typeof api.packs.next>[number]
+
 export function PacksPage() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const nextPack = useMutation(api.packs.next)
+  const claimPack = useMutation(api.packs.claim)
+  const { data: catalog } = useQuery(convexQuery(api.packs.catalog, {}))
+  const [pulls, setPulls] = useState<ReadonlyArray<Pull> | null>(null)
   // Read once, then marked, so this visit keeps its entrance.
   const [entrance] = useState(() => {
     const first = !arrived
@@ -17,22 +28,41 @@ export function PacksPage() {
     return first
   })
 
+  useEffect(() => {
+    let cancelled = false
+    async function draw() {
+      const cards = await nextPack()
+      if (!cancelled) setPulls(cards.map(withPhoto))
+    }
+    void draw()
+    return () => {
+      cancelled = true
+    }
+  }, [nextPack])
+
+  if (!pulls || !catalog) return <div className="min-h-0 flex-1" />
+
   return (
     <div
       data-immersive={open || undefined}
       className="min-h-0 relative flex flex-1 justify-center"
     >
       <PackOpening
-        pulls={DEMO_PACK}
-        images={PACK_IMAGES}
+        pulls={pulls}
+        images={catalog.covers.map(photoUrl)}
         entrance={entrance}
-        onOpenChange={setOpen}
+        onOpenChange={(next) => {
+          // Owned from the moment it's opened, so leaving mid-reveal keeps the cards.
+          if (next) void claimPack()
+          setOpen(next)
+        }}
         onDone={() =>
           void navigate({
             to: "/collection",
             // Only cards the player didn't have, newest (last revealed) first.
             search: {
-              added: DEMO_PACK.filter((pull) => pull.isNew)
+              added: pulls
+                .filter((pull) => pull.isNew)
                 .map((pull) => pull.id)
                 .toReversed(),
             },

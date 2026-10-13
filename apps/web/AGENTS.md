@@ -8,9 +8,13 @@ composition; data and logic come from `@workspace/backend`.
 Screens are built from `@workspace/ui`. When something is missing, it usually
 belongs in `packages/ui` rather than in the app.
 
-The current game UI uses static animal demo data from
-`src/game/_lib/demo-data.ts`. Its photos are Wikimedia Commons images; check
-and show each image's attribution and license before shipping.
+The game UI uses `packs` from `@workspace/backend` and starts an anonymous
+Better Auth session on arrival. On app open, cards from `packs.upgrades` climb
+one rarity per tap on their own screen
+(`src/game/_components/card-upgrades.tsx`). Set `VITE_CONVEX_SITE_URL` to the deployment's
+`.convex.site` URL so `/api/auth` can forward to Convex. Animal photos come
+from Wikimedia Commons; check and show each image's attribution and license
+before shipping.
 
 ## Effect
 

@@ -86,10 +86,10 @@ const studio = (): Array<ComponentConfig> => [
   {
     type: "StudioBackground",
     props: {
-      color: "#e6dcff",
+      color: "#d3edd7",
       keyColor: "#ffffff",
-      fillColor: "#f4efff",
-      backColor: "#d9c8ff",
+      fillColor: "#e9f6eb",
+      backColor: "#b6ddbd",
       center: { x: 0.5, y: 0.8 },
       brightness: 100,
       keyIntensity: 50,
@@ -102,7 +102,7 @@ const studio = (): Array<ComponentConfig> => [
   {
     type: "LinearGradient",
     props: {
-      colorA: "#d9c8ff",
+      colorA: "#b6ddbd",
       colorB: "#ffffff",
       start: { x: 0.5, y: 0 },
       end: { x: 0.5, y: 1 },

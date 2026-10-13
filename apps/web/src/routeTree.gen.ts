@@ -13,6 +13,8 @@ import { Route as GameRouteImport } from './routes/_game'
 import { Route as GameIndexRouteImport } from './routes/_game.index'
 import { Route as GameCollectionRouteImport } from './routes/_game.collection'
 import { Route as GameProfileRouteImport } from './routes/_game.profile'
+import { Route as ApiPhotoRouteImport } from './routes/api.photo'
+import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
 
 const GameRoute = GameRouteImport.update({
   id: '/_game',
@@ -33,34 +35,59 @@ const GameProfileRoute = GameProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => GameRoute,
 } as any)
+const ApiPhotoRoute = ApiPhotoRouteImport.update({
+  id: '/api/photo',
+  path: '/api/photo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof GameIndexRoute
   '/collection': typeof GameCollectionRoute
   '/profile': typeof GameProfileRoute
+  '/api/photo': typeof ApiPhotoRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/collection': typeof GameCollectionRoute
   '/profile': typeof GameProfileRoute
+  '/api/photo': typeof ApiPhotoRoute
   '/': typeof GameIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_game': typeof GameRouteWithChildren
   '/_game/collection': typeof GameCollectionRoute
   '/_game/profile': typeof GameProfileRoute
+  '/api/photo': typeof ApiPhotoRoute
   '/_game/': typeof GameIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/collection' | '/profile'
+  fullPaths: '/' | '/collection' | '/profile' | '/api/photo' | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/collection' | '/profile' | '/'
-  id: '__root__' | '/_game' | '/_game/collection' | '/_game/profile' | '/_game/'
+  to: '/collection' | '/profile' | '/api/photo' | '/' | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/_game'
+    | '/_game/collection'
+    | '/_game/profile'
+    | '/api/photo'
+    | '/_game/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   GameRoute: typeof GameRouteWithChildren
+  ApiPhotoRoute: typeof ApiPhotoRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -93,6 +120,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameProfileRouteImport
       parentRoute: typeof GameRoute
     }
+    '/api/photo': {
+      id: '/api/photo'
+      path: '/api/photo'
+      fullPath: '/api/photo'
+      preLoaderRoute: typeof ApiPhotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -112,6 +153,8 @@ const GameRouteWithChildren = GameRoute._addFileChildren(GameRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   GameRoute: GameRouteWithChildren,
+  ApiPhotoRoute: ApiPhotoRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

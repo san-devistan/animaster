@@ -1,8 +1,13 @@
-import { PLAYER } from "@/game/_lib/demo-data"
+import { useCollectedCards } from "@/game/_lib/collection"
+import { convexQuery } from "@convex-dev/react-query"
+import { useQuery } from "@tanstack/react-query"
+import { api } from "@workspace/backend/api"
 import { GamePill } from "@workspace/ui/components/game-shell"
 import { LayersIcon } from "lucide-react"
 
 export function CollectionCount() {
+  const owned = useCollectedCards()
+  const { data: catalog } = useQuery(convexQuery(api.packs.catalog, {}))
   return (
     <GamePill>
       <span
@@ -11,7 +16,7 @@ export function CollectionCount() {
       >
         <LayersIcon strokeWidth={3} />
       </span>
-      {PLAYER.owned} / {PLAYER.total.toLocaleString("en")}
+      {owned?.length ?? 0} / {(catalog?.total ?? 0).toLocaleString("en")}
     </GamePill>
   )
 }

@@ -64,15 +64,15 @@
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(1 0 0);
   --secondary-foreground: oklch(0.18 0.015 300);
-  --muted: oklch(0.92 0.018 300);
+  --muted: oklch(0.92 0.018 150);
   --muted-foreground: oklch(0.47 0.015 300);
-  --accent: oklch(0.86 0.075 300);
+  --accent: oklch(0.86 0.07 150);
   --accent-foreground: oklch(0.18 0.015 300);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.18 0.015 300 / 12%);
   --input: oklch(0.18 0.015 300 / 15%);
-  --ring: oklch(0.6 0.25 304);
-  --chart-1: oklch(0.6 0.25 304);
+  --ring: oklch(0.54 0.13 150);
+  --chart-1: oklch(0.54 0.13 150);
   --chart-2: oklch(0.82 0.1 175);
   --chart-3: oklch(0.78 0.1 275);
   --chart-4: oklch(0.82 0.1 330);
@@ -80,23 +80,23 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.96 0.009 88);
   --sidebar-foreground: oklch(0.18 0.015 300);
-  --sidebar-primary: oklch(0.6 0.25 304);
+  --sidebar-primary: oklch(0.54 0.13 150);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.92 0.018 300);
+  --sidebar-accent: oklch(0.92 0.018 150);
   --sidebar-accent-foreground: oklch(0.18 0.015 300);
   --sidebar-border: oklch(0.18 0.015 300 / 12%);
-  --sidebar-ring: oklch(0.6 0.25 304);
+  --sidebar-ring: oklch(0.54 0.13 150);
   --rarity-common: oklch(0.92 0.06 170);
   --rarity-rare: oklch(0.8 0.1 275);
   --rarity-epic: oklch(0.83 0.11 330);
   --rarity-legendary: oklch(0.89 0.16 90);
-  --brand: oklch(0.6 0.25 304);
+  --brand: oklch(0.54 0.13 150);
   --brand-foreground: oklch(1 0 0);
-  --brand-ink: oklch(0.54 0.26 302);
+  --brand-ink: oklch(0.48 0.11 150);
   --ink: oklch(0.18 0.015 300);
   --ink-foreground: oklch(1 0 0);
   --paper: oklch(0.96 0.009 88);
-  --lavender: oklch(0.85 0.075 300);
+  --lavender: oklch(0.86 0.07 150);
 }
 
 .dark {
@@ -112,36 +112,36 @@
   --secondary-foreground: oklch(0.96 0.009 88);
   --muted: oklch(0.29 0.02 300);
   --muted-foreground: oklch(0.72 0.015 300);
-  --accent: oklch(0.36 0.08 300);
+  --accent: oklch(0.36 0.07 150);
   --accent-foreground: oklch(0.96 0.009 88);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.68 0.22 304);
-  --chart-1: oklch(0.68 0.22 304);
+  --ring: oklch(0.62 0.15 150);
+  --chart-1: oklch(0.62 0.15 150);
   --chart-2: oklch(0.82 0.1 175);
   --chart-3: oklch(0.78 0.1 275);
   --chart-4: oklch(0.82 0.1 330);
   --chart-5: oklch(0.88 0.16 90);
   --sidebar: oklch(0.2 0.018 300);
   --sidebar-foreground: oklch(0.96 0.009 88);
-  --sidebar-primary: oklch(0.68 0.22 304);
+  --sidebar-primary: oklch(0.62 0.15 150);
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.29 0.02 300);
   --sidebar-accent-foreground: oklch(0.96 0.009 88);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.68 0.22 304);
+  --sidebar-ring: oklch(0.62 0.15 150);
   --rarity-common: oklch(0.86 0.08 170);
   --rarity-rare: oklch(0.76 0.12 275);
   --rarity-epic: oklch(0.78 0.14 330);
   --rarity-legendary: oklch(0.86 0.16 90);
-  --brand: oklch(0.68 0.22 304);
+  --brand: oklch(0.62 0.15 150);
   --brand-foreground: oklch(1 0 0);
-  --brand-ink: oklch(0.78 0.16 304);
+  --brand-ink: oklch(0.78 0.13 150);
   --ink: oklch(0.12 0.012 300);
   --ink-foreground: oklch(1 0 0);
   --paper: oklch(0.96 0.009 88);
-  --lavender: oklch(0.85 0.075 300);
+  --lavender: oklch(0.86 0.07 150);
 }
 
 /* Game utilities read by Tailwind and @shadcn/lint. */
@@ -370,15 +370,15 @@
   }
 }
 
-/* App backdrop: lavender settling into off-white, like the lab's studio. */
+/* App backdrop: soft green settling into off-white, like the lab's studio. */
 @utility game-backdrop {
   background:
-    radial-gradient(120% 70% at 50% 82%, #fff 0, #ece4ff 35%, transparent 75%),
+    radial-gradient(120% 70% at 50% 82%, #fff 0, #dcf2df 35%, transparent 75%),
     linear-gradient(var(--lavender), var(--paper));
   background-attachment: fixed;
 }
 
 /* Canvas under browser chrome (e.g. Safari's bottom bar): the backdrop's bottom edge. */
 @utility game-backdrop-floor {
-  background-color: color-mix(in oklab, #ece4ff 65%, var(--paper));
+  background-color: color-mix(in oklab, #dcf2df 65%, var(--paper));
 }

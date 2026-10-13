@@ -1,7 +1,8 @@
 import { CardDetail, type Showcase } from "@/game/_components/card-showcase"
 import { CollectionCount } from "@/game/_components/collection-count"
-import { COLLECTION, type CollectedCard } from "@/game/_lib/demo-data"
-import { getRouteApi } from "@tanstack/react-router"
+import { useCollectedCards, type CollectedCard } from "@/game/_lib/collection"
+import { getRouteApi, Link } from "@tanstack/react-router"
+import { Button } from "@workspace/ui/components/button"
 import {
   GameCardThumb,
   gameCardThumbSlot,
@@ -14,7 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import type { CssVars, Rarity } from "@workspace/ui/lib/game/theme"
+import {
+  RARITY_ORDER,
+  type CssVars,
+  type Rarity,
+} from "@workspace/ui/lib/game/theme"
 import {
   ArrowDownAZIcon,
   ArrowDownUpIcon,
@@ -25,12 +30,6 @@ import {
 import { useEffect, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 
-const RARITY_ORDER: ReadonlyArray<Rarity> = [
-  "common",
-  "rare",
-  "epic",
-  "legendary",
-]
 const FILTERS = {
   all: "All rarities",
   common: "Common",
@@ -46,8 +45,7 @@ const SORTS = {
   recent: {
     label: "Recent",
     Icon: ClockIcon,
-    compare: (a: CollectedCard, b: CollectedCard) =>
-      b.pulledOn.localeCompare(a.pulledOn),
+    compare: (a: CollectedCard, b: CollectedCard) => b.pulledAt - a.pulledAt,
   },
   rarest: {
     label: "Rarest",
@@ -67,6 +65,30 @@ const SORT_LABELS = Object.fromEntries(
   Object.entries(SORTS).map(([key, { label }]) => [key, label])
 )
 
+// Each card's place in the grid. Under "recent", just-pulled `added` cards
+// come first, newest first; a pack's cards share a pull time and come oldest
+// saved first (least rare), so reversed, ties go newest first, as they dropped in.
+function gridOrder(
+  collection: ReadonlyArray<CollectedCard>,
+  sort: SortKey,
+  added: ReadonlyArray<string>
+) {
+  const freshness = (card: CollectedCard) => {
+    const at = added.indexOf(card.id)
+    return at < 0 ? added.length : at
+  }
+  return new Map(
+    collection
+      .toReversed()
+      .toSorted((a, b) =>
+        sort === "recent"
+          ? freshness(a) - freshness(b) || SORTS.recent.compare(a, b)
+          : SORTS[sort].compare(a, b)
+      )
+      .map((card, at) => [card.id, at])
+  )
+}
+
 const TRIGGER_CLASS = "flex-1 sm:flex-none sm:min-w-48"
 // Seconds before the first just-pulled card drops into the collection, then
 // between each next one, and the drop itself (see game-drop).
@@ -76,12 +98,12 @@ const DROP = 0.6
 const route = getRouteApi("/_game/collection")
 
 export function CollectionPage() {
-  // New cards just pulled from a pack, newest first: shown first, under all
-  // rarities and the recent order the page opens with, and badged NEW. They
-  // aren't in the grid on arrival; they're added one by one, first pulled
-  // first, each dropping in at the top and pushing the rest down. Leaving the
-  // page drops `added` from the URL, and the badges.
+  const cards = useCollectedCards()
+  const collection = cards ?? []
+  // New cards just pulled, newest first: first in the grid, dropped in one
+  // by one, and badged NEW until the page drops `added` from the URL.
   const { added = [] } = route.useSearch()
+  const fresh = new Set(added)
   // How many of the new cards are in the grid so far, oldest pull first.
   const [landed, setLanded] = useState(0)
   const arriving = landed < added.length
@@ -96,18 +118,13 @@ export function CollectionPage() {
   const [showcase, setShowcase] = useState<Showcase | null>(null)
   const openerRef = useRef<HTMLButtonElement | null>(null)
   const selected = showcase?.card ?? null
+  // By id: a live collection update brings new card objects.
+  const isAway = (card: CollectedCard) =>
+    selected?.id === card.id && showcase?.phase !== "lifting"
   // The page steps aside once the big card covers its thumb, and comes back
   // as it heads home.
   const immersive = showcase?.phase === "shown"
-  const freshness = (card: CollectedCard) => {
-    const at = added.indexOf(card.id)
-    return at < 0 ? added.length : at
-  }
-  const order = COLLECTION.toSorted((a, b) =>
-    sort === "recent"
-      ? freshness(a) - freshness(b) || SORTS.recent.compare(a, b)
-      : SORTS[sort].compare(a, b)
-  )
+  const order = gridOrder(collection, sort, added)
   const isShown = (card: CollectedCard) =>
     filter === "all" || card.rarity === filter
 
@@ -213,12 +230,13 @@ export function CollectionPage() {
         </div>
 
         <GameScroll>
+          <EmptyCollection shown={cards?.length === 0} />
           <ul className="gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 grid grid-cols-2">
             {/* Keep WebGL cards mounted while filtering; hide and reorder instead. */}
-            {COLLECTION.map((card) => {
-              const isNew = added.includes(card.id)
+            {collection.map((card) => {
+              const isNew = fresh.has(card.id)
               const orderStyle: CssVars = {
-                "--game-order": String(order.indexOf(card)),
+                "--game-order": String(order.get(card.id)),
                 "--game-card": `card-${card.id}`,
               }
               return (
@@ -249,7 +267,7 @@ export function CollectionPage() {
                     <GameCardThumb
                       card={card}
                       copies={card.copies}
-                      away={selected === card && showcase?.phase !== "lifting"}
+                      away={isAway(card)}
                     />
                     {isNew ? (
                       <span
@@ -284,6 +302,20 @@ export function CollectionPage() {
           onClose={() => setShowcase(null)}
         />
       ) : null}
+    </div>
+  )
+}
+
+function EmptyCollection({ shown }: { shown: boolean }) {
+  if (!shown) return null
+  return (
+    <div className="gap-4 pt-16 flex flex-col items-center text-center">
+      <p className="text-lg font-bold">No cards yet</p>
+      <Button
+        variant="game"
+        nativeButton={false}
+        render={<Link to="/">Open a pack</Link>}
+      />
     </div>
   )
 }

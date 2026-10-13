@@ -1,15 +1,23 @@
 export type Rarity = "common" | "rare" | "epic" | "legendary"
 
+// Least to most rare.
+export const RARITY_ORDER: ReadonlyArray<Rarity> = [
+  "common",
+  "rare",
+  "epic",
+  "legendary",
+]
+
 // Shader gradients take at most 8 stops.
 export const FOIL: ReadonlyArray<readonly [string, number]> = [
-  ["#a238ff", 0.04],
-  ["#c470f8", 0.15],
-  ["#f5c4f2", 0.3],
+  ["#2e9e52", 0.04],
+  ["#68c36d", 0.15],
+  ["#c2ecb9", 0.3],
   ["#ffd64a", 0.46],
   ["#d8d6d8", 0.58],
-  ["#a9b8ff", 0.66],
-  ["#a173fe", 0.74],
-  ["#a238ff", 0.82],
+  ["#7bd1ba", 0.66],
+  ["#35aa76", 0.74],
+  ["#2e9e52", 0.82],
 ]
 
 export type Stops = ReadonlyArray<readonly [string, number]>
@@ -29,13 +37,13 @@ export const RARITIES: Record<Rarity, Stops> = {
   legendary: duo(["#ffb21e", "#ffe08a", "#fffbe8", "#ff8ab8", "#ffd3e2"]),
 }
 
-// Brand violet, shared with the pack foil.
+// Brand green, shared with the pack foil.
 export const BRAND = {
-  color: "#a238ff",
+  color: "#258343",
   on: "#ffffff",
-  // Darker violet for small text on paper (#a238ff is ~4.1:1 there).
-  ink: "#8b22f0",
-  mesh: ["#a238ff", "#c470f8", "#7b2cff", "#d9a0ff"],
+  // Darker green for small text on paper (#258343 is ~4.3:1 there).
+  ink: "#246e3a",
+  mesh: ["#2e9e52", "#68c36d", "#0b7643", "#9dde9e"],
 }
 
 export type GameCardData = {
@@ -43,7 +51,8 @@ export type GameCardData = {
   name: string
   subtitle: string
   imageUrl: string
-  stat: string
+  // Yearly English Wikipedia page views.
+  views: number
   rarity: Rarity
 }
 

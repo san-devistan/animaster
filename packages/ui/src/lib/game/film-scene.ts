@@ -9,7 +9,7 @@ import * as THREE from "three"
 
 export type { FilmSpec, Trim } from "@workspace/ui/lib/game/film-material"
 
-// Product-shot studio: dim lavender sweep with a few softboxes, so the glossy
+// Product-shot studio: dim green sweep with a few softboxes, so the glossy
 // film shows crisp highlights instead of mirroring a whole bright room.
 function studio() {
   const room = new THREE.Scene()
@@ -25,7 +25,7 @@ function studio() {
   }
   add(
     new THREE.SphereGeometry(50, 32, 16),
-    new THREE.MeshBasicMaterial({ color: "#3a3248", side: THREE.BackSide })
+    new THREE.MeshBasicMaterial({ color: "#243228", side: THREE.BackSide })
   )
   const boxes = [
     [-14, 18, 22, 10, 24, 2.4],
@@ -136,6 +136,8 @@ export type Film = {
   faces: { front: THREE.BufferGeometry; rear: THREE.BufferGeometry }
   // Turns the foil's light without turning the film.
   tilt: THREE.Vector2
+  // Fades the mirror image, 0..1.
+  mirror: { value: number }
   // Resolves once the art is drawn and on the film.
   ready: Promise<void>
 }
@@ -172,6 +174,7 @@ export function addFilm(
     ramp: canvasTexture(drawFoilRamp(spec.stops), renderer),
     time: stage.time,
     tilt: new THREE.Vector2(),
+    mirror: { value: 1 },
   }
   disposables.push(
     spec.geometry,
@@ -228,6 +231,7 @@ export function addFilm(
     reflection,
     faces: { front: spec.geometry, rear: back },
     tilt: foil.tilt,
+    mirror: foil.mirror,
     ready: dress(),
   }
 }

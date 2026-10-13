@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@convex-dev/better-auth": "0.12.5",
     "@convex-dev/react-query": "^0.1.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-query": "^5.104.0",
@@ -19,6 +20,7 @@
     "@tanstack/router-plugin": "^1.168.41",
     "@workspace/backend": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "better-auth": "1.6.15",
     "convex": "^1.46.0",
     "effect": "4.0.0-rc.118",
     "lucide-react": "^1.49.0",

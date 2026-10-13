@@ -25,7 +25,7 @@ export const Route = createRootRouteWithContext<{
       {
         title: "Animaster",
       },
-      { name: "theme-color", content: "#d5c3f8" },
+      { name: "theme-color", content: "#b1dfb9" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "Animaster" },
       {

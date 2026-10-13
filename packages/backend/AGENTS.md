@@ -24,3 +24,20 @@ External providers are added as Convex components:
 
 Convex itself is reachable through its MCP and the workspace CLI
 (`pnpm exec convex`).
+
+## Game
+
+- Players (`auth.ts`): Better Auth in its Convex component, anonymous guests
+  only for now. Set the Convex env vars `BETTER_AUTH_SECRET` and `SITE_URL`
+  (the web app URL); `playerId(ctx)` uses the authenticated Convex identity.
+- Packs (`packs.ts`): `packs:next` draws and stores a player's waiting pack
+  once; `packs:claim` moves it into `collection`, adding copies for repeats.
+  Each `collection` row keeps `seenRarity`, the rarity the player last saw the
+  card at. `packs:upgrades` lists owned cards whose rarity rose past it in an
+  import, and `packs:seeUpgrade` marks one seen once the app has shown it.
+  Each of the five card positions has its own `packOdds` in `rarity.ts`; one
+  pack in 1,000 is a god pack with five legendary cards. Species rarities stay
+  the view-based tiers in `rarity.ts`. Check:
+  `node packages/backend/convex/rarity.check.mjs`.
+- Draws use each species' random `drawKey` on `by_rarity_and_drawKey`.
+  `catalogStats` stores the species count; `species:upsert` keeps both.

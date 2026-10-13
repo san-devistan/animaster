@@ -12,11 +12,20 @@ const INK = "#121016"
 // The image sits on an ink frame that shows as a thin ring around the art.
 const FRAME = { at: 12.75, size: 214.5, radius: 14 }
 const ART = { at: 15.5, size: 209, radius: 11 }
+// Photos keep their shape up to this ratio (either way) and are trimmed past
+// it, so a very wide or tall one doesn't shrink to a strip.
+const MAX_RATIO = 4 / 3
+// Side, in card units, of the tiny copy stretched into the blurred backdrop.
+const BLUR = 6
 
 const DISPLAY = "800 18px 'Unbounded Variable'"
 const UI = "500 14px 'Space Grotesk Variable'"
 const STAT = "700 12px 'Space Grotesk Variable'"
 const NEW = "900 12px 'Unbounded Variable'"
+const compactNumber = new Intl.NumberFormat("en", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+})
 
 function border(ctx: CanvasRenderingContext2D) {
   ctx.strokeStyle = INK
@@ -41,17 +50,41 @@ async function picture(ctx: CanvasRenderingContext2D, card: GameCardData) {
   ctx.beginPath()
   ctx.roundRect(ART.at, ART.at, ART.size, ART.size, ART.radius)
   ctx.clip()
-  const side = Math.min(image.naturalWidth, image.naturalHeight)
+  const { naturalWidth: width, naturalHeight: height } = image
+  // Behind the photo: the photo again, filling the square, blurred and dimmed
+  // so the bands its own shape leaves read as background. Blurred by drawing
+  // it tiny and stretching it back (canvas filters aren't in every Safari).
+  const side = Math.min(width, height)
+  const { canvas: tiny, ctx: tinyCtx } = blankCanvas(BLUR, BLUR)
+  tinyCtx.drawImage(
+    image,
+    (width - side) / 2,
+    (height - side) / 2,
+    side,
+    side,
+    0,
+    0,
+    BLUR,
+    BLUR
+  )
+  ctx.imageSmoothingQuality = "high"
+  ctx.drawImage(tiny, ART.at, ART.at, ART.size, ART.size)
+  ctx.fillStyle = "rgb(18 16 22 / 0.18)"
+  ctx.fillRect(ART.at, ART.at, ART.size, ART.size)
+  // The photo whole, centred, trimmed to MAX_RATIO.
+  const cropWidth = Math.min(width, height * MAX_RATIO)
+  const cropHeight = Math.min(height, width * MAX_RATIO)
+  const fit = ART.size / Math.max(cropWidth, cropHeight)
   ctx.drawImage(
     image,
-    (image.naturalWidth - side) / 2,
-    (image.naturalHeight - side) / 2,
-    side,
-    side,
-    ART.at,
-    ART.at,
-    ART.size,
-    ART.size
+    (width - cropWidth) / 2,
+    (height - cropHeight) / 2,
+    cropWidth,
+    cropHeight,
+    ART.at + (ART.size - cropWidth * fit) / 2,
+    ART.at + (ART.size - cropHeight * fit) / 2,
+    cropWidth * fit,
+    cropHeight * fit
   )
   ctx.restore()
 }
@@ -59,7 +92,7 @@ async function picture(ctx: CanvasRenderingContext2D, card: GameCardData) {
 function stat(ctx: CanvasRenderingContext2D, card: GameCardData) {
   ctx.fillStyle = INK
   ctx.font = STAT
-  ctx.fillText(card.stat, 18.75, 309.5)
+  ctx.fillText(`${compactNumber.format(card.views)} views`, 18.75, 309.5)
 }
 
 // Name and subtitle sit on their own marquee strips so long ones can scroll;
@@ -154,7 +187,7 @@ export async function drawSticker(
   return canvas
 }
 
-// The card's back, as on the 2D card back: violet mesh and wordmark.
+// The card's back, as on the 2D card back: green mesh and wordmark.
 export async function drawCardBack() {
   await Promise.all(
     ["900 28px 'Unbounded Variable'", "600 12px 'Space Grotesk Variable'"].map(

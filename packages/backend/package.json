@@ -19,6 +19,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@convex-dev/better-auth": "0.12.5",
+    "better-auth": "1.6.15",
     "convex": "^1.46.0",
     "effect": "4.0.0-rc.118",
     "ts-pattern": "^5.9.0"

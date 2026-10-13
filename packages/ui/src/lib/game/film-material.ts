@@ -61,6 +61,8 @@ export type Foil = {
   ramp: THREE.Texture
   time: { value: number }
   tilt: THREE.Vector2
+  // How strong the film's mirror image is, 0..1, to fade it in and out.
+  mirror: { value: number }
 }
 
 export type Trim = {
@@ -264,6 +266,7 @@ export function filmMaterial(
     shader.uniforms.foilRamp = { value: foil.ramp }
     shader.uniforms.foilTime = foil.time
     shader.uniforms.foilTilt = { value: foil.tilt }
+    shader.uniforms.mirrorFade = foil.mirror
     const declarations = marquees.map(
       ({ map, box, cycle, speed, fade }, index) => {
         const name = `marquee${index}`
@@ -285,6 +288,7 @@ export function filmMaterial(
           "uniform sampler2D foilRamp;",
           "uniform float foilTime;",
           "uniform vec2 foilTilt;",
+          "uniform float mirrorFade;",
           ...declarations,
         ].join("\n")
       )
@@ -293,7 +297,7 @@ export function filmMaterial(
       .replace(
         "#include <opaque_fragment>",
         // Mirror image fades out from the film's bottom edge (v = 0).
-        "#include <opaque_fragment>\n#ifdef REFLECTION\ngl_FragColor.a *= 0.3 * pow( 1.0 - smoothstep( 0.0, 0.22, vMapUv.y ), 2.0 );\n#endif"
+        "#include <opaque_fragment>\n#ifdef REFLECTION\ngl_FragColor.a *= mirrorFade * 0.3 * pow( 1.0 - smoothstep( 0.0, 0.22, vMapUv.y ), 2.0 );\n#endif"
       )
   }
   return material

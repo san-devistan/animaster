@@ -37,7 +37,7 @@ function paintCrimp(ctx: CanvasRenderingContext2D, y: number) {
   for (let x = 0; x < PACK_W; x += 3) {
     ctx.fillStyle = "rgb(255 255 255 / 0.28)"
     ctx.fillRect(x, y, 1, SEAL)
-    ctx.fillStyle = "rgb(20 12 40 / 0.12)"
+    ctx.fillStyle = "rgb(7 27 12 / 0.12)"
     ctx.fillRect(x + 1, y, 2, SEAL)
   }
 }

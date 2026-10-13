@@ -9,7 +9,10 @@ import {
 } from "@workspace/ui/lib/game/card-art"
 import { canvasTexture } from "@workspace/ui/lib/game/film-material"
 import {
+  addFilm,
+  createStage,
   mountFilmScene,
+  trackPointer,
   type FilmSpec,
   type Trim,
 } from "@workspace/ui/lib/game/film-scene"
@@ -26,9 +29,16 @@ import {
   RISE,
   SHINE,
   span,
+  UPGRADE,
+  UPGRADE_SWAP,
+  upgradePose,
   type Pose,
 } from "@workspace/ui/lib/game/reveal-motion"
-import { RARITIES, type GameCardData } from "@workspace/ui/lib/game/theme"
+import {
+  RARITIES,
+  type GameCardData,
+  type Rarity,
+} from "@workspace/ui/lib/game/theme"
 import * as THREE from "three"
 
 // Card stock: about 0.5 mm on a 63 mm wide card.
@@ -329,6 +339,91 @@ export function mountCardScene(
   }
 }
 
+export type UpgradeScene = {
+  dispose: () => void
+  // Resolves once every step's art is drawn.
+  ready: Promise<void>
+  // Turns the card up to its next rarity; resolves once it faces front again.
+  step: () => Promise<void>
+}
+
+// A card going up through `rarities`, one per step: one film per rarity, posed
+// together, with only the current one shown. Each step turns the card round
+// and shows the next while its back faces the viewer. Framed like the opened
+// pile (smaller when the canvas is narrow or short), the pointer tilting it.
+export function mountUpgradeScene(
+  canvas: HTMLCanvasElement,
+  card: GameCardData,
+  rarities: ReadonlyArray<Rarity>
+): UpgradeScene {
+  const stage = createStage(canvas)
+  const { clientWidth: width, clientHeight: height } = canvas
+  // Clear of the sides, and of a header and footer a fifth of the height each.
+  stage.camera.position.z /= Math.min(
+    PILE_ZOOM,
+    (width - 64) / CARD_W,
+    (height * 0.6) / CARD_H
+  )
+  const turning = new THREE.Group()
+  stage.scene.add(turning)
+  const films = rarities.map((rarity, index) => {
+    const film = addFilm(stage, cardFilm({ ...card, rarity }))
+    film.subject.visible = index === 0
+    turning.add(film.subject)
+    return film
+  })
+  const back = cardBack(stage.renderer)
+  turning.add(new THREE.Mesh(back.geometry, back.material))
+  stage.disposables.push(back)
+  const pointer = trackPointer(canvas, stage, { touch: true })
+  let shown = 0
+  let turn: { start: number; done: () => void; swapped: boolean } | null = null
+  const lean = { x: 0, y: 0 }
+  // Shows the film for the next rarity in place of the current one.
+  const advance = () => {
+    const current = films[shown]
+    if (current) current.subject.visible = false
+    shown = Math.min(shown + 1, films.length - 1)
+    const next = films[shown]
+    if (next) next.subject.visible = true
+  }
+  stage.onFrame((time, delta) => {
+    let at = pose({})
+    if (turn) {
+      const since = time - turn.start
+      at = upgradePose(at, since)
+      if (!turn.swapped && since >= UPGRADE * UPGRADE_SWAP) {
+        turn.swapped = true
+        advance()
+      }
+      if (since >= UPGRADE) {
+        turn.done()
+        turn = null
+      }
+    }
+    // Sways and turns towards the pointer, like a card on show.
+    const ease = 1 - 0.92 ** (delta * 60)
+    const sway = pointer.at ? 0 : Math.sin((time * Math.PI * 2) / 9) * 0.14
+    lean.y += (sway + (pointer.at?.x ?? 0) * 0.8 - lean.y) * ease
+    lean.x += ((pointer.at?.y ?? 0) * 0.7 - lean.x) * ease
+    place(turning, { ...at, rx: at.rx + lean.x, ry: at.ry + lean.y })
+    turning.position.y += 6 + 4 * (1 - Math.cos((time * Math.PI * 2) / 5))
+  })
+  return {
+    dispose: stage.dispose,
+    ready: Promise.all(films.map((film) => film.ready)).then(() => undefined),
+    step() {
+      if (stage.still) {
+        advance()
+        return Promise.resolve()
+      }
+      return new Promise<void>((done) => {
+        turn = { start: stage.time.value, done, swapped: false }
+      })
+    },
+  }
+}
+
 type CardStage = ReturnType<typeof mountFilmScene>
 
 // Groups carrying an entrance round the film and its mirror image, so the
@@ -411,6 +506,10 @@ function revealCard(stage: CardStage, card: GameCardData, pile: boolean) {
 
 // How far a flying card lifts towards the viewer mid-flight.
 const LIFT = 140
+// Seconds the mirror floor takes to fade in under a landed card, and out as it
+// leaves.
+const MIRROR_IN = 0.35
+const MIRROR_OUT = 0.15
 
 // A card picked from a grid: drawn exactly over its slot, it lifts out, flies
 // to the middle and celebrates; flyBack lays it back in a slot.
@@ -422,7 +521,9 @@ function flyCard(
 ) {
   const { motion, mirrored, shine } = entrance(stage)
   const canvas = stage.renderer.domElement
-  const { subject, tilt } = stage.film
+  const { subject, tilt, mirror } = stage.film
+  // Off until the card lands.
+  mirror.value = 0
   // The canvas spans the page, so cap its resolution; the card stays sharp.
   stage.renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
   const { zoom, shift } = frame(stage, land)
@@ -446,7 +547,7 @@ function flyCard(
   // Time starts on the first drawn frame, so the flight isn't eaten by loading.
   let began: number | null = null
   void stage.film.ready.then(() => (began = stage.time.value))
-  stage.onFrame((time) => {
+  stage.onFrame((time, delta) => {
     let at: Pose
     // How far the card is from its slot: 0 sits flat in it, 1 is free.
     let out: number
@@ -481,8 +582,11 @@ function flyCard(
     stage.scene.environmentRotation.set(tilt.y, -tilt.x, 0)
     place(motion, at)
     place(mirrored, at)
-    // The mirror floor belongs under the landed card, not mid-flight.
-    mirrored.visible = out >= 1 && !leaving
+    // The mirror floor belongs under the landed card, not mid-flight: it fades
+    // in once the card lands and out as it leaves.
+    const fade = out >= 1 && !leaving ? delta / MIRROR_IN : -delta / MIRROR_OUT
+    mirror.value = Math.min(1, Math.max(0, mirror.value + fade))
+    mirrored.visible = mirror.value > 0
   })
   return {
     flyBack(to: () => CardSlot | null) {

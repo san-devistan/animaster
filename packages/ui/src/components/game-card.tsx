@@ -3,15 +3,17 @@
 import { CountBadge } from "@workspace/ui/components/count-badge"
 import {
   mountCardScene,
+  mountUpgradeScene,
   type CardScene,
   type CardSceneOptions,
   type CardSlot,
+  type UpgradeScene,
 } from "@workspace/ui/lib/game/card-scene"
 import {
   cardThumbSlot,
   mountCardThumb,
 } from "@workspace/ui/lib/game/card-thumbs"
-import type { GameCardData } from "@workspace/ui/lib/game/theme"
+import type { GameCardData, Rarity } from "@workspace/ui/lib/game/theme"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   useEffect,
@@ -138,10 +140,62 @@ function gameCardThumbSlot(element: Element | null) {
   return canvas instanceof HTMLCanvasElement ? cardThumbSlot(canvas) : null
 }
 
+// Turns the card up to its next rarity; resolves once it faces front again.
+type UpgradingCardHandle = Pick<UpgradeScene, "step">
+
+// A three.js card going up through `rarities`, the first shown on mount and
+// one more per `step`.
+function UpgradingCard({
+  card,
+  rarities,
+  onReady,
+  ref,
+  className,
+}: {
+  card: GameCardData
+  rarities: ReadonlyArray<Rarity>
+  onReady?: () => void
+  ref?: Ref<UpgradingCardHandle>
+  className?: string
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const sceneRef = useRef<UpgradeScene | null>(null)
+  const ready = useEffectEvent(() => onReady?.())
+
+  useImperativeHandle(ref, () => ({
+    step: () => sceneRef.current?.step() ?? Promise.resolve(),
+  }))
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return undefined
+    const scene = mountUpgradeScene(canvas, card, rarities)
+    sceneRef.current = scene
+    let current = true
+    void scene.ready.then(() => current && ready())
+    return () => {
+      current = false
+      sceneRef.current = null
+      scene.dispose()
+    }
+  }, [card, rarities])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      data-slot="upgrading-card"
+      className={cn("game-canvas touch-none select-none", className)}
+      aria-hidden="true"
+    />
+  )
+}
+
 export {
   GameCard,
   GameCardThumb,
   gameCardThumbSlot,
+  UpgradingCard,
   type GameCardHandle,
   type GameCardProps,
+  type UpgradingCardHandle,
 }

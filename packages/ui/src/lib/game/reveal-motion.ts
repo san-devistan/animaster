@@ -90,6 +90,19 @@ function legendaryPose(at: Pose, t: number): Pose {
 
 export const celebrations = { epic: epicPose, legendary: legendaryPose }
 
+// A card going up a rarity: it lifts and turns a full turn round, swapping to
+// its new rarity halfway (UPGRADE_SWAP), while its back is showing.
+export const UPGRADE = 1.1
+export const UPGRADE_SWAP = 0.5
+export function upgradePose(at: Pose, t: number): Pose {
+  const turn = clamp01(t / UPGRADE)
+  return {
+    ...at,
+    z: at.z + 120 * Math.sin(Math.PI * turn),
+    ry: at.ry + Math.PI * 2 * easeInOut(turn),
+  }
+}
+
 // Seconds after a card lands until its reveal cue (uisfx lengths) and
 // celebration have played out: when follow-up effects can start. Legendary's cue
 // comes 0.85s in and its light sweep ends at 2.1s.
