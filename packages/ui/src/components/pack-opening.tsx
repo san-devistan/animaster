@@ -69,6 +69,24 @@ function swipeSide(drag: Drag, end: Point) {
 const revealedIn = (pull: PackPull | undefined, delay: number) =>
   pull && delay + REVEAL_PLAYED[pull.rarity]
 
+// Mounts the scene a frame later, so the screen paints before the WebGL setup;
+// returns its cleanup, which also clears the card on show.
+function mountNextFrame(
+  sceneRef: { current: OpeningScene | null },
+  clear: () => void,
+  ...args: Parameters<typeof mountOpeningScene>
+) {
+  const frame = requestAnimationFrame(() => {
+    sceneRef.current = mountOpeningScene(...args)
+  })
+  return () => {
+    cancelAnimationFrame(frame)
+    clear()
+    sceneRef.current?.dispose()
+    sceneRef.current = null
+  }
+}
+
 type PackOpeningProps = {
   pulls: ReadonlyArray<PackPull>
   images: ReadonlyArray<string>
@@ -115,7 +133,9 @@ function PackOpening({
     reset()
     setPhase("idle")
     setIndex(0)
-    const scene = mountOpeningScene(
+    return mountNextFrame(
+      sceneRef,
+      () => announce(null),
       canvas,
       pulls,
       imageKey.split("|"),
@@ -126,12 +146,6 @@ function PackOpening({
       },
       { entrance }
     )
-    sceneRef.current = scene
-    return () => {
-      sceneRef.current = null
-      announce(null)
-      scene.dispose()
-    }
     // pullKey is the stable identity of pulls.
     // oxlint-disable-next-line react/exhaustive-deps
   }, [imageKey, pullKey, reset, reveal, entrance])

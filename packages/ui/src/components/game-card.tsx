@@ -122,7 +122,7 @@ function LiveThumb({ card, copies = 1, away = false }: GameCardThumbProps) {
       className="group-hover/card:-translate-y-1 @container/thumb relative block aspect-5/7 w-full transition-transform group-active/card:scale-95 data-away:invisible"
     >
       {drawn ? null : (
-        <span className="animate-pulse inset-0 absolute rounded-2xl bg-muted" />
+        <span className="animate-pulse inset-0 absolute rounded-[5%/3.57%] bg-muted" />
       )}
       <canvas
         ref={canvasRef}

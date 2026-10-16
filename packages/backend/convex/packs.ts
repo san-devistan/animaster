@@ -17,21 +17,24 @@ import {
   type Rarity,
 } from "./rarity"
 
-const card = (species: Doc<"species">) => ({
-  id: species._id,
-  name: species.names.en ?? species.names.scientific ?? "Unknown animal",
-  subtitle: species.names.scientific ?? "",
-  imageUrl: species.photoUrl,
-  stat:
+const card = (species: Doc<"species">) => {
+  const lineageClass =
     species.lineage.class ??
     species.lineage.order ??
     species.lineage.family ??
-    "Animal",
-  rarity: species.rarity,
-  views: species.views,
-  wikipediaUrl: species.wikipedia.en ?? null,
-  extinct: species.extinct,
-})
+    "Animal"
+  return {
+    id: species._id,
+    name: species.names.en ?? species.names.scientific ?? "Unknown animal",
+    subtitle: lineageClass,
+    imageUrl: species.photoUrl,
+    stat: lineageClass,
+    rarity: species.rarity,
+    views: species.views,
+    wikipediaUrl: species.wikipedia.en ?? null,
+    extinct: species.extinct,
+  }
+}
 
 type Card = ReturnType<typeof card>
 
@@ -123,14 +126,12 @@ export const next = mutation({
         speciesIds: cards.map((pulled) => pulled.id),
       })
     }
-    const pulls: Array<Card & { isNew: boolean }> = []
-    for (const pulled of cards) {
-      pulls.push({
+    return Promise.all(
+      cards.map(async (pulled) => ({
         ...pulled,
         isNew: !(await ownedCard(ctx, player, pulled.id)),
-      })
-    }
-    return pulls
+      }))
+    )
   },
 })
 
@@ -179,12 +180,13 @@ export const collection = query({
       .query("collection")
       .withIndex("by_playerId", (q) => q.eq("playerId", player))
       .take(5000)
-    const found: Array<Card & { copies: number; pulledAt: number }> = []
-    for (const { speciesId, copies, pulledAt } of rows) {
-      const owned = await cardById(ctx, speciesId)
-      if (owned) found.push({ ...owned, copies, pulledAt })
-    }
-    return found
+    const found = await Promise.all(
+      rows.map(async ({ speciesId, copies, pulledAt }) => {
+        const owned = await cardById(ctx, speciesId)
+        return owned ? [{ ...owned, copies, pulledAt }] : []
+      })
+    )
+    return found.flat()
   },
 })
 
@@ -200,17 +202,21 @@ export const upgrades = query({
       .query("collection")
       .withIndex("by_playerId", (q) => q.eq("playerId", player))
       .take(5000)
-    const found: Array<Card & { copies: number; from: Rarity }> = []
-    for (const { speciesId, copies, seenRarity } of rows) {
-      if (!seenRarity || seenRarity === "legendary") continue
-      const owned = await cardById(ctx, speciesId)
-      if (owned && rarityRank(owned.rarity) > rarityRank(seenRarity)) {
-        found.push({ ...owned, copies, from: seenRarity })
-      }
-    }
-    return found.toSorted(
-      (a, b) => rarityRank(b.rarity) - rarityRank(a.rarity) || b.views - a.views
+    const found = await Promise.all(
+      rows.map(async ({ speciesId, copies, seenRarity }) => {
+        if (!seenRarity || seenRarity === "legendary") return []
+        const owned = await cardById(ctx, speciesId)
+        return owned && rarityRank(owned.rarity) > rarityRank(seenRarity)
+          ? [{ ...owned, copies, from: seenRarity }]
+          : []
+      })
     )
+    return found
+      .flat()
+      .toSorted(
+        (a, b) =>
+          rarityRank(b.rarity) - rarityRank(a.rarity) || b.views - a.views
+      )
   },
 })
 

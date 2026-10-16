@@ -247,6 +247,8 @@ export function mountOpeningScene(
   // than the pack popping in.
   let drawn = false
   canvas.removeAttribute("data-drawn")
+  // Only the entrance fades in; coming back, the pack is simply there.
+  canvas.toggleAttribute("data-entrance", entrance)
   void body.ready.then(() => {
     // A remount may have taken the canvas over meanwhile.
     if (stage.disposed) return false

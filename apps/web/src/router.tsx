@@ -46,6 +46,11 @@ export function getRouter() {
   )
 
   convexQueryClient?.connect(queryClient)
+  // Opens the socket now, paused until the token comes, so its handshake runs
+  // alongside the auth calls instead of after them.
+  if (typeof window !== "undefined") {
+    convexQueryClient?.convexClient.connectionState()
+  }
 
   function ConvexProviderWrapper({ children }: { children: ReactNode }) {
     if (!convexQueryClient) {

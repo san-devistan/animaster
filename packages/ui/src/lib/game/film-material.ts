@@ -34,6 +34,9 @@ export type FilmSpec = {
   // What glitters: tiny flakes (default), mid-size glints (epic), or flaring
   // stars with a sweeping gold sheen (legendary).
   sparkle?: "flakes" | "glints" | "stars"
+  // Printed card stock instead of glossy film: satin varnish, paper grain,
+  // and a softer, duller glare.
+  paper?: boolean
   // Solid parts posed with the film, like a card's edge.
   solids?: Array<THREE.Mesh<THREE.BufferGeometry, Array<THREE.Material>>>
   draw: () => Promise<{
@@ -116,7 +119,7 @@ const marqueeFragment = (index: number, width: number, height: number) => {
 }
 
 const foilFragment = (
-  { width, height, level = 1, trim }: FilmSpec,
+  { width, height, level = 1, trim, paper }: FilmSpec,
   marquees: number
 ) => /* glsl */ `
   vec4 ink = texture2D( map, vMapUv );
@@ -129,6 +132,7 @@ const foilFragment = (
   t += dot( facing.xy, vec2( 0.45, -0.3 ) );
   t += 0.025 * sin( 6.0 * ( vMapUv.x - vMapUv.y ) + foilTime * 0.7 );
   vec3 foil = texture2D( foilRamp, vec2( t, 0.5 ) ).rgb;
+  ${paper ? "foil = mix( foil, vec3( dot( foil, vec3( 0.299, 0.587, 0.114 ) ) ), 0.18 ) * 0.94 + 0.03;" : ""}
   diffuseColor.rgb *= foil * ( 1.0 - ink.a ) + ink.rgb;
   // Holo film over everything, art included, like the 2D Holographic layer
   // (overlay, 0.45 × level): rainbow patches that swirl as the surface turns.
@@ -149,8 +153,30 @@ const foilFragment = (
   float spot = exp( -dot( spotAt, spotAt ) / 0.06 );
   float band = smoothstep( 0.18, 0.0, abs( dot( onFilm, vec2( 0.906, 0.423 ) ) - 0.45 - slide.x ) );
   float glare = clamp( 0.75 * spot + 0.5 * band, 0.0, 1.0 );
+  ${paper ? paperFragment(width, height) : ""}
   ${trim ? trimFragment(trim) : ""}
-  diffuseColor.rgb = 1.0 - ( 1.0 - diffuseColor.rgb ) * ( 1.0 - 0.3 * glare );
+  diffuseColor.rgb = 1.0 - ( 1.0 - diffuseColor.rgb ) * ( 1.0 - ${paper ? "0.12" : "0.3"} * glare );
+`
+
+// Card stock under the print: fibres (fine noise, stretched along the grain),
+// blotchy pulp and ink that thins toward the edges, so flat colour reads as
+// paper rather than a screen.
+const paperFragment = (width: number, height: number) => /* glsl */ `
+  vec2 fibreAt = onFilm * vec2( ${glsl(width)}, ${glsl(height)} );
+  float fibre = rand( floor( fibreAt * vec2( 1.5, 0.45 ) ) ) - 0.5;
+  float speck = step( 0.992, rand( floor( fibreAt * 1.2 ) + 3.7 ) );
+  vec2 pulpAt = fibreAt / 14.0;
+  vec2 pulpCell = floor( pulpAt );
+  vec2 pulpFract = smoothstep( 0.0, 1.0, fract( pulpAt ) );
+  float pulp = mix(
+    mix( rand( pulpCell ), rand( pulpCell + vec2( 1.0, 0.0 ) ), pulpFract.x ),
+    mix( rand( pulpCell + vec2( 0.0, 1.0 ) ), rand( pulpCell + vec2( 1.0, 1.0 ) ), pulpFract.x ),
+    pulpFract.y
+  ) - 0.5;
+  vec2 fromEdge = min( onFilm, 1.0 - onFilm ) * vec2( ${glsl(width)}, ${glsl(height)} );
+  float worn = 1.0 - smoothstep( 0.0, 26.0, min( fromEdge.x, fromEdge.y ) );
+  diffuseColor.rgb *= 1.0 + 0.11 * fibre + 0.08 * pulp - 0.18 * speck;
+  diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * 0.88 + 0.07, 0.6 * worn );
 `
 
 const flakesFragment = ({
@@ -248,13 +274,23 @@ export function filmMaterial(
     // One-sided in the mirror too (three flips the winding for its negative
     // scale), or a two-faced film's rear would show through its front.
     side: THREE.FrontSide,
-    roughness: 0.55,
-    clearcoat: 1,
-    clearcoatRoughness: 0.14,
-    specularIntensity: 0.4,
-    iridescence: 0.35,
-    iridescenceIOR: 1.3,
-    iridescenceThicknessRange: [250, 500],
+    // Card stock: a satin varnish that blooms rather than mirrors.
+    ...(spec.paper
+      ? {
+          roughness: 0.82,
+          clearcoat: 0.35,
+          clearcoatRoughness: 0.55,
+          specularIntensity: 0.25,
+        }
+      : {
+          roughness: 0.55,
+          clearcoat: 1,
+          clearcoatRoughness: 0.14,
+          specularIntensity: 0.4,
+          iridescence: 0.35,
+          iridescenceIOR: 1.3,
+          iridescenceThicknessRange: [250, 500],
+        }),
   })
   // A define, not a branch in onBeforeCompile, so the two get separate programs.
   if (reflection) material.defines = { ...material.defines, REFLECTION: "" }

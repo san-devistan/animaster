@@ -42,11 +42,10 @@ function paintCrimp(ctx: CanvasRenderingContext2D, y: number) {
   }
 }
 
-async function paintImages(
+function paintImages(
   ctx: CanvasRenderingContext2D,
-  images: ReadonlyArray<string>
+  loaded: ReadonlyArray<HTMLImageElement>
 ) {
-  const loaded = await Promise.all(images.slice(0, 4).map(loadImage))
   ctx.save()
   ctx.beginPath()
   ctx.roundRect(26, 44, 180, 180, 16)
@@ -139,12 +138,14 @@ export function packShape(part: "whole" | "body" | "strip" = "whole") {
 }
 
 export async function drawPackArt(images: ReadonlyArray<string>) {
-  await Promise.all([
+  // Photos download while the fonts load, not after.
+  const [loaded] = await Promise.all([
+    Promise.all(images.slice(0, 4).map(loadImage)),
     document.fonts.load("900 28px 'Unbounded Variable'"),
     document.fonts.load("700 10px 'Space Mono'"),
   ])
   const front = blankFilm()
-  await paintImages(front.ctx, images)
+  paintImages(front.ctx, loaded)
   paintTitle(front.ctx)
   const rear = blankFilm()
   rear.ctx.fillStyle = "#121016"

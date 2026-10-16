@@ -3,18 +3,19 @@ import { blankCanvas, loadImage } from "@workspace/ui/lib/game/pack-art"
 import { BRAND, type GameCardData } from "@workspace/ui/lib/game/theme"
 
 // Card artwork drawn to a canvas, in the game card layout
-// (240×336, 3px ink border, 24px radius). Rarity foil shows where it's clear.
+// (240×336, a printed border, a real card's 3mm corners). Rarity foil shows
+// where it's clear.
 // Front only: the card never turns far enough to show its back.
 export const CARD_W = 240
 export const CARD_H = 336
-export const CARD_RADIUS = 24
+export const CARD_RADIUS = 12
+// The printed border round the card, in card stock; rarer cards foil it.
+const BORDER = 7
+export const STOCK = "#f2ecde"
 const INK = "#121016"
 // The image sits on an ink frame that shows as a thin ring around the art.
-const FRAME = { at: 12.75, size: 214.5, radius: 14 }
-const ART = { at: 15.5, size: 209, radius: 11 }
-// Photos keep their shape up to this ratio (either way) and are trimmed past
-// it, so a very wide or tall one doesn't shrink to a strip.
-const MAX_RATIO = 4 / 3
+const FRAME = { at: 12.75, size: 214.5, radius: 6.75 }
+const ART = { at: 15.5, size: 209, radius: 4 }
 // Side, in card units, of the tiny copy stretched into the blurred backdrop.
 const BLUR = 6
 
@@ -28,24 +29,24 @@ const compactNumber = new Intl.NumberFormat("en", {
 })
 
 function border(ctx: CanvasRenderingContext2D) {
-  ctx.strokeStyle = INK
-  ctx.lineWidth = 3
+  ctx.fillStyle = STOCK
   ctx.beginPath()
-  ctx.roundRect(1.5, 1.5, CARD_W - 3, CARD_H - 3, CARD_RADIUS - 1.5)
-  ctx.stroke()
+  ctx.roundRect(0, 0, CARD_W, CARD_H, CARD_RADIUS)
+  ctx.roundRect(
+    BORDER,
+    BORDER,
+    CARD_W - 2 * BORDER,
+    CARD_H - 2 * BORDER,
+    CARD_RADIUS - BORDER
+  )
+  ctx.fill("evenodd")
 }
 
-async function picture(ctx: CanvasRenderingContext2D, card: GameCardData) {
-  const image = await loadImage(card.imageUrl)
-  ctx.save()
-  ctx.shadowColor = "rgb(18 16 22 / 0.35)"
-  ctx.shadowBlur = 18
-  ctx.shadowOffsetY = 8
+function picture(ctx: CanvasRenderingContext2D, image: HTMLImageElement) {
   ctx.fillStyle = INK
   ctx.beginPath()
   ctx.roundRect(FRAME.at, FRAME.at, FRAME.size, FRAME.size, FRAME.radius)
   ctx.fill()
-  ctx.restore()
   ctx.save()
   ctx.beginPath()
   ctx.roundRect(ART.at, ART.at, ART.size, ART.size, ART.radius)
@@ -71,20 +72,14 @@ async function picture(ctx: CanvasRenderingContext2D, card: GameCardData) {
   ctx.drawImage(tiny, ART.at, ART.at, ART.size, ART.size)
   ctx.fillStyle = "rgb(18 16 22 / 0.18)"
   ctx.fillRect(ART.at, ART.at, ART.size, ART.size)
-  // The photo whole, centred, trimmed to MAX_RATIO.
-  const cropWidth = Math.min(width, height * MAX_RATIO)
-  const cropHeight = Math.min(height, width * MAX_RATIO)
-  const fit = ART.size / Math.max(cropWidth, cropHeight)
+  // The whole photo, centred and fitted, however wide or tall.
+  const fit = ART.size / Math.max(width, height)
   ctx.drawImage(
     image,
-    (width - cropWidth) / 2,
-    (height - cropHeight) / 2,
-    cropWidth,
-    cropHeight,
-    ART.at + (ART.size - cropWidth * fit) / 2,
-    ART.at + (ART.size - cropHeight * fit) / 2,
-    cropWidth * fit,
-    cropHeight * fit
+    ART.at + (ART.size - width * fit) / 2,
+    ART.at + (ART.size - height * fit) / 2,
+    width * fit,
+    height * fit
   )
   ctx.restore()
 }
@@ -217,8 +212,8 @@ export async function drawCardBack() {
   return canvas
 }
 
-// Rounded card outline for the alpha test (green), with the card border and
-// the image ring marked in red so rarer cards can foil them alike.
+// Rounded card outline for the alpha test (green), with the printed border
+// and the image ring marked in red so rarer cards can foil them alike.
 function cardShape() {
   const { canvas, ctx } = blankCanvas(CARD_W, CARD_H)
   ctx.fillStyle = "#00ff00"
@@ -228,7 +223,13 @@ function cardShape() {
   ctx.fillStyle = "#ffffff"
   ctx.beginPath()
   ctx.roundRect(0, 0, CARD_W, CARD_H, CARD_RADIUS)
-  ctx.roundRect(3, 3, CARD_W - 6, CARD_H - 6, CARD_RADIUS - 3)
+  ctx.roundRect(
+    BORDER,
+    BORDER,
+    CARD_W - 2 * BORDER,
+    CARD_H - 2 * BORDER,
+    CARD_RADIUS - BORDER
+  )
   ctx.roundRect(FRAME.at, FRAME.at, FRAME.size, FRAME.size, FRAME.radius)
   ctx.roundRect(ART.at, ART.at, ART.size, ART.size, ART.radius)
   ctx.fill("evenodd")
@@ -236,11 +237,13 @@ function cardShape() {
 }
 
 export async function drawCardArt(card: GameCardData) {
-  await Promise.all(
-    [DISPLAY, UI, STAT].map((font) => document.fonts.load(font))
-  )
+  // The photo downloads while the fonts load, not after.
+  const [image] = await Promise.all([
+    loadImage(card.imageUrl),
+    ...[DISPLAY, UI, STAT].map((font) => document.fonts.load(font)),
+  ])
   const front = blankCanvas(CARD_W, CARD_H)
-  await picture(front.ctx, card)
+  picture(front.ctx, image)
   stat(front.ctx, card)
   border(front.ctx)
   return {

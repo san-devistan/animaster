@@ -6,6 +6,7 @@ import {
   drawCardBack,
   drawSticker,
   STICKER,
+  STOCK,
 } from "@workspace/ui/lib/game/card-art"
 import { canvasTexture } from "@workspace/ui/lib/game/film-material"
 import {
@@ -54,25 +55,25 @@ const GOLD: Trim = {
   race: true,
 }
 
-// Rarer cards get more holo (like the 2D shader presets), fancier borders and
-// a metallic edge; glitter flakes grow into glints (epic) and flaring stars
-// (legendary).
+// Printed card stock: commons are plain matte print, rarer cards get a holo
+// layer and foil borders; glitter flakes grow into glints (epic) and flaring
+// stars (legendary).
 const RARITY = {
-  common: { level: 0.2, metal: 0, sparkle: "flakes" },
+  common: { level: 0, glitter: 0, sparkle: "flakes" },
   rare: {
-    level: 0.5,
+    level: 0.3,
     trim: SILVER,
-    metal: 0.4,
     sparkle: "flakes",
-    glitter: 2,
+    glitter: 1.2,
   },
-  epic: { level: 0.8, trim: ORCHID, metal: 0.7, sparkle: "glints" },
-  legendary: { level: 1.2, trim: GOLD, metal: 1, sparkle: "stars" },
+  epic: { level: 0.55, trim: ORCHID, sparkle: "glints" },
+  legendary: { level: 0.85, trim: GOLD, sparkle: "stars" },
 } as const
 
 // The card stock's cut edge: the outline extruded, walls only (the printed
-// faces cover the caps).
-function cardEdge(color: string, metal: number) {
+// faces cover the caps). Board with a dark core between its two printed
+// plies, like a real trading card.
+function cardEdge() {
   const outline = new THREE.Shape()
   outline.moveTo(-CARD_W / 2 + CARD_RADIUS, -CARD_H / 2)
   for (const [x, y, angle] of [
@@ -89,24 +90,25 @@ function cardEdge(color: string, metal: number) {
     curveSegments: 16,
   }).translate(0, 0, -THICKNESS / 2)
   const caps = new THREE.MeshBasicMaterial({ visible: false })
-  const walls = new THREE.MeshPhysicalMaterial({
-    color,
-    metalness: metal,
-    roughness: 0.25,
-    clearcoat: 1,
-    clearcoatRoughness: 0.2,
-    // Rarer edges catch prism colours as they turn, like the trim.
-    iridescence: metal,
-    iridescenceIOR: 1.6,
-    iridescenceThicknessRange: [200, 800],
+  const walls = new THREE.MeshStandardMaterial({
+    color: STOCK,
+    roughness: 0.95,
   })
+  // Side-wall v runs 0..1 across the thickness.
+  walls.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <map_fragment>",
+      /* glsl */ `#include <map_fragment>
+      diffuseColor.rgb *= mix( 1.0, 0.32, smoothstep( 0.3, 0.42, vUv.y ) * smoothstep( 0.7, 0.58, vUv.y ) );`
+    )
+  }
+  walls.defines = { USE_UV: "" }
   return new THREE.Mesh(geometry, [caps, walls])
 }
 
 export const CARD_THICKNESS = THICKNESS
 
 export function cardFilm(card: GameCardData): FilmSpec {
-  const { metal, ...look } = RARITY[card.rarity]
   const stops = RARITIES[card.rarity]
   return {
     width: CARD_W,
@@ -117,9 +119,9 @@ export function cardFilm(card: GameCardData): FilmSpec {
       THICKNESS / 2
     ),
     stops,
-    ...look,
-    // Common cards keep the 2D ink edge; rarer ones show their foil colour.
-    solids: [cardEdge(metal ? (stops[0]?.[0] ?? "#121016") : "#121016", metal)],
+    ...RARITY[card.rarity],
+    paper: true,
+    solids: [cardEdge()],
     draw: () => drawCardArt(card),
   }
 }
@@ -207,9 +209,9 @@ export function cardBack(renderer: THREE.WebGLRenderer) {
     .translate(0, 0, -THICKNESS / 2)
   const material = new THREE.MeshPhysicalMaterial({
     alphaTest: 0.5,
-    roughness: 0.5,
-    clearcoat: 1,
-    clearcoatRoughness: 0.14,
+    roughness: 0.82,
+    clearcoat: 0.35,
+    clearcoatRoughness: 0.55,
   })
   const texture = drawCardBack().then((art) => {
     const map = canvasTexture(art, renderer)

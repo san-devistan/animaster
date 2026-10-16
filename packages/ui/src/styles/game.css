@@ -116,10 +116,9 @@
   position: relative;
   height: 100%;
   isolation: isolate;
-  border-radius: 24px;
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.6) inset,
-    0 18px 36px -12px rgb(20 54 29 / 0.45);
+  /* Same corners as the 3D card: 12 units on a 240×336 card. */
+  border-radius: calc(12 / 240 * 100%) / calc(12 / 336 * 100%);
+  box-shadow: 0 18px 36px -12px rgb(20 54 29 / 0.45);
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -138,7 +137,7 @@
   justify-content: center;
   overflow: hidden;
   isolation: isolate;
-  border: 3px solid var(--ink);
+  border: 7px solid #f2ecde;
   border-radius: inherit;
   background: var(--brand-mesh);
   color: var(--brand-foreground);
@@ -178,14 +177,26 @@
   pointer-events: none;
 }
 
-/* The opening's canvas fades in once its pack is drawn, rather than the pack
-   popping in (opening-scene sets data-drawn). */
+/* The opening's canvas shows once its pack is drawn (opening-scene sets
+   data-drawn), rather than the pack popping in: on its entrance a fade while
+   the pack flies in; coming back to the tab, a quick fade as it settles a touch
+   forward, like a short echo of that entrance. */
 [data-slot="pack-opening"] > .game-canvas {
+  transition:
+    opacity 0.25s ease-out,
+    scale 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-slot="pack-opening"] > .game-canvas[data-entrance] {
   transition: opacity 0.35s ease-out;
 }
 
 [data-slot="pack-opening"] > .game-canvas:not([data-drawn]) {
   opacity: 0;
+}
+
+[data-slot="pack-opening"] > .game-canvas:not([data-drawn], [data-entrance]) {
+  scale: 0.96;
 }
 
 .game-pack-motes > i {
